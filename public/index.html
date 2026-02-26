@@ -3,256 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Key Store - Thanh Toán Tự Động</title>
+    <title>FastKey Store - Thanh Toán An Toàn</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
-        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .product-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .qr-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="bg-slate-50 min-h-screen">
 
-    <div class="max-w-6xl mx-auto">
-        <div id="catalog-view">
-            <header class="text-center mb-12">
-                <h1 class="text-4xl font-extrabold text-slate-900 mb-2 italic">FAST<span class="text-blue-600">KEY</span></h1>
-                <p class="text-slate-500 font-medium">Hệ thống cung cấp Key bản quyền tự động 24/7</p>
-            </header>
-            <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="col-span-full text-center py-20">
-                    <div class="spinner mx-auto"></div>
-                    <p class="mt-4 text-slate-400">Đang tải kho hàng...</p>
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <i data-lucide="zap" class="text-white w-6 h-6"></i>
                 </div>
+                <h1 class="text-2xl font-bold text-slate-800">FASTKEY</h1>
             </div>
+            <div class="text-sm text-slate-500">Hệ thống thanh toán tự động 24/7</div>
         </div>
 
-        <div id="checkout-view" class="hidden max-w-xl mx-auto">
-            <button onclick="showCatalog()" class="mb-6 text-slate-400 font-bold flex items-center hover:text-blue-600 transition">
-                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> QUAY LẠI CỬA HÀNG
-            </button>
-
-            <div class="bg-white rounded-[2.5rem] shadow-2xl p-6 md:p-8 space-y-8 border border-slate-100">
-                <div class="flex items-center space-x-5 bg-slate-50 p-5 rounded-[2rem] border border-slate-100">
-                    <img id="check-img" src="" class="w-20 h-20 object-contain drop-shadow-md">
-                    <div>
-                        <h3 id="check-name" class="font-bold text-xl text-slate-800 leading-tight"></h3>
-                        <p id="check-desc" class="text-xs text-slate-500 mt-1"></p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="shopping-cart" class="w-5 h-5 text-blue-600"></i>
+                    Chi tiết đơn hàng
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between py-3 border-b border-slate-100">
+                        <span class="text-slate-500">Sản phẩm</span>
+                        <span class="font-medium text-slate-800" id="display-product">Premium Key</span>
+                    </div>
+                    <div class="flex justify-between py-3 border-b border-slate-100">
+                        <span class="text-slate-500">Mã đơn hàng</span>
+                        <span class="font-mono font-bold text-blue-600" id="display-order-id">ORD......</span>
+                    </div>
+                    <div class="flex justify-between py-3 border-b border-slate-100">
+                        <span class="text-slate-500">Số lượng</span>
+                        <span class="font-medium text-slate-800" id="display-qty">1</span>
+                    </div>
+                    <div class="flex justify-between py-4">
+                        <span class="text-lg font-bold text-slate-800">Tổng cộng</span>
+                        <span class="text-2xl font-bold text-blue-600" id="display-total">0đ</span>
                     </div>
                 </div>
 
-                <div class="space-y-5">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Số lượng</label>
-                            <input type="number" id="qty" value="1" min="1" onchange="updateTotal()" 
-                                class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 font-bold outline-none">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Mã giảm giá</label>
-                            <div class="flex space-x-2">
-                                <input type="text" id="coupon" placeholder="CODE" 
-                                    class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 font-bold uppercase outline-none">
-                                <button onclick="applyCoupon()" class="bg-slate-800 text-white px-4 rounded-2xl hover:bg-black transition">
-                                    <i data-lucide="ticket" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Email nhận Key</label>
-                        <input type="email" id="cust_email" placeholder="example@gmail.com" 
-                            class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Số điện thoại</label>
-                        <input type="tel" id="cust_phone" placeholder="09xxxxxxx" 
-                            class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl shadow-slate-200">
-                    <div class="flex justify-between items-center opacity-70 text-sm mb-1">
-                        <span>Đơn giá: <span id="unit-price">0đ</span></span>
-                        <span id="discount-tag" class="hidden text-emerald-400 font-bold">-0%</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold">Tổng thanh toán:</span>
-                        <span id="txt-total" class="text-3xl font-black text-blue-400">0đ</span>
-                    </div>
-                </div>
-
-                <button id="btn-pay" onclick="confirmOrder()" class="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-extrabold shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center space-x-2">
-                    <span>XÁC NHẬN MUA NGAY</span>
-                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                </button>
-            </div>
-        </div>
-
-        <div id="payment-view" class="hidden max-w-md mx-auto text-center space-y-8 py-4">
-            <div id="payment-loading" class="animate-in fade-in duration-500">
-                <h3 class="text-2xl font-extrabold text-slate-800">Quét mã VietQR</h3>
-                <div class="bg-white p-4 border-2 border-slate-100 rounded-[3rem] inline-block shadow-2xl my-6">
-                    <img id="qr-img" src="" class="w-64 h-64 mx-auto object-contain">
-                </div>
-                <div class="px-6 space-y-4">
-                    <a id="smart-link" href="#" target="_blank" class="block w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center space-x-2 shadow-lg shadow-slate-200">
-                        <i data-lucide="smartphone" class="w-4 h-4"></i>
-                        <span>MỞ APP NGÂN HÀNG</span>
-                    </a>
-                    <div class="flex items-center justify-center space-x-3 text-blue-600 bg-blue-50 py-3 rounded-2xl">
-                        <div class="spinner !w-4 !h-4"></div>
-                        <span class="text-xs font-bold uppercase tracking-widest italic">Đang chờ xác nhận giao dịch...</span>
+                <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                    <div class="flex gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-600 shrink-0"></i>
+                        <p class="text-sm text-blue-800">
+                            Hệ thống sẽ tự động giao Key vào Email ngay sau khi nhận được thanh toán. Vui lòng không tắt trình duyệt.
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <div id="payment-success" class="hidden space-y-6">
-                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-100">
-                    <i data-lucide="check" class="w-10 h-10"></i>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col items-center justify-center min-h-[400px]">
+                
+                <div id="payment-loading" class="w-full text-center">
+                    <div class="qr-gradient p-3 rounded-2xl inline-block mb-4 shadow-lg">
+                        <img id="qr-image" src="https://placehold.co/200x200?text=Sẵn+Sàng" alt="QR Code" class="w-48 h-48 rounded-lg bg-white">
+                    </div>
+                    
+                    <div class="flex items-center justify-center gap-2 text-slate-600 mb-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                        <span class="font-medium">Đang chờ xác nhận giao dịch...</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Tự động kiểm tra mỗi 3 giây</p>
+                    
+                    <div class="mt-6 text-left bg-slate-50 p-4 rounded-xl">
+                        <p class="text-xs text-slate-500 uppercase font-bold mb-2">Nội dung chuyển khoản</p>
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-lg font-bold text-slate-800" id="display-content">---</span>
+                            <button onclick="copyContent()" class="text-blue-600 hover:text-blue-800">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <h2 class="text-3xl font-black text-slate-800">Thanh Toán Thành Công!</h2>
-                <p class="text-slate-500">Mã Key đã được gửi vào Email của bạn. Cảm ơn bạn!</p>
-                <button onclick="location.reload()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 transition">TIẾP TỤC MUA SẮM</button>
+
+                <div id="payment-success" class="hidden w-full text-center animate-in fade-in zoom-in duration-500">
+                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="check-circle" class="w-12 h-12 text-green-600"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Thanh Toán Thành Công!</h2>
+                    <p class="text-slate-600 mb-6">Mã Key đã được gửi vào Email của bạn. Cảm ơn bạn!</p>
+                    <button onclick="location.reload()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all w-full">
+                        TIẾP TỤC MUA SẮM
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let allProducts = [], selectedProduct = null, discountPercent = 0, checkTimer = null;
+        // Khởi tạo Lucide Icons
+        lucide.createIcons();
 
-        // Khởi tạo trang: Lấy danh sách sản phẩm
-        window.onload = async () => {
-            lucide.createIcons();
-            try {
-                const res = await fetch('/api/get-all-products');
-                allProducts = await res.json();
-                renderCatalog();
-            } catch (e) { console.error("Lỗi tải dữ liệu"); }
-        };
+        let checkTimer = null;
+        let currentOrderId = "";
 
-        function renderCatalog() {
-            const list = document.getElementById('product-list');
-            list.innerHTML = allProducts.map(p => `
-                <div class="product-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between">
-                    <div>
-                        <img src="${p.image_url}" class="w-20 h-20 mb-6 object-contain">
-                        <h3 class="text-xl font-bold text-slate-800">${p.name}</h3>
-                        <p class="text-slate-400 text-sm mt-2 line-clamp-2 font-medium">${p.description}</p>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-slate-50 mt-6 pt-6">
-                        <span class="text-2xl font-black text-blue-600">${p.price.toLocaleString()}đ</span>
-                        <button onclick="openCheckout('${p.code}')" class="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-lg shadow-slate-100">Mua ngay</button>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
+        // Giả lập hàm tạo đơn (Thay thế bằng logic thật của bạn)
+        async function createOrder(productCode, price, qty, email) {
+            const orderId = "ORD" + Math.floor(100000 + Math.random() * 900000);
+            currentOrderId = orderId;
+
+            // Hiển thị thông tin lên giao diện
+            document.getElementById('display-order-id').innerText = orderId;
+            document.getElementById('display-product').innerText = productCode;
+            document.getElementById('display-qty').innerText = qty;
+            document.getElementById('display-total').innerText = (price * qty).toLocaleString() + "đ";
+            document.getElementById('display-content').innerText = orderId;
+
+            // Tạo QR SePay (Thay ngân hàng/số tài khoản của bạn vào đây)
+            const qrUrl = `https://qr.sepay.vn/img?acc=134150399&bank=ACB&amount=${price * qty}&des=${orderId}`;
+            document.getElementById('qr-image').src = qrUrl;
+
+            // Bắt đầu vòng lặp kiểm tra trạng thái
+            startCheckingStatus(orderId);
         }
 
-        function openCheckout(code) {
-            selectedProduct = allProducts.find(p => p.code === code);
-            discountPercent = 0;
-            document.getElementById('check-img').src = selectedProduct.image_url;
-            document.getElementById('check-name').innerText = selectedProduct.name;
-            document.getElementById('check-desc').innerText = selectedProduct.description;
-            document.getElementById('unit-price').innerText = selectedProduct.price.toLocaleString() + 'đ';
-            updateTotal();
-            
-            document.getElementById('catalog-view').classList.add('hidden');
-            document.getElementById('checkout-view').classList.remove('hidden');
-            lucide.createIcons();
-        }
+        function startCheckingStatus(orderId) {
+            if (checkTimer) clearInterval(checkTimer);
 
-        function showCatalog() { location.reload(); }
-
-        function updateTotal() {
-            const qty = parseInt(document.getElementById('qty').value) || 1;
-            const subtotal = selectedProduct.price * qty;
-            const finalTotal = subtotal * (1 - discountPercent/100);
-            
-            document.getElementById('txt-total').innerText = Math.round(finalTotal).toLocaleString() + 'đ';
-            
-            if(discountPercent > 0) {
-                document.getElementById('discount-tag').classList.remove('hidden');
-                document.getElementById('discount-tag').innerText = `-${discountPercent}%`;
-            } else {
-                document.getElementById('discount-tag').classList.add('hidden');
-            }
-        }
-
-        async function applyCoupon() {
-            const code = document.getElementById('coupon').value.trim();
-            if(!code) return;
-            try {
-                const res = await fetch(`/api/check-coupon?code=${code}`);
-                if(res.ok) {
-                    const data = await res.json();
-                    discountPercent = data.discount_percent;
-                    alert(`Thành công! Bạn được giảm ${discountPercent}%`);
-                    updateTotal();
-                } else { alert("Mã giảm giá không hợp lệ!"); }
-            } catch (e) { alert("Lỗi kết nối mã giảm giá!"); }
-        }
-
-        async function confirmOrder() {
-            const email = document.getElementById('cust_email').value;
-            const phone = document.getElementById('cust_phone').value;
-            const qty = document.getElementById('qty').value;
-            const totalStr = document.getElementById('txt-total').innerText.replace(/\D/g,'');
-            const orderId = "ORD" + Math.floor(100000 + Math.random() * 899999);
-
-            if(!email.includes('@') || email.length < 5) return alert("Vui lòng nhập Email chính xác!");
-
-            const btn = document.getElementById('btn-pay');
-            btn.disabled = true;
-            btn.innerHTML = `<div class="spinner !border-white !border-t-transparent mx-auto"></div>`;
-
-            try {
-                const res = await fetch('/api/create-order', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ order_id: orderId, email, phone, total: parseInt(totalStr) })
-                });
-
-                if(res.ok) {
-                    const STK = "134150399"; // THAY STK CỦA BẠN
-                    const BANK = "ACB";       // THAY MÃ NGÂN HÀNG (MB, VCB...)
-                    const content = `${orderId}_${phone}`;
-                    
-                    document.getElementById('qr-img').src = `https://img.vietqr.io/image/${BANK}-${STK}-compact2.png?amount=${totalStr}&addInfo=${content}`;
-                    document.getElementById('smart-link').href = `https://dl.vietqr.io/pay?ba=${STK}@${BANK}&am=${totalStr}&tn=${encodeURIComponent(content)}`;
-                    
-                    document.getElementById('checkout-view').classList.add('hidden');
-                    document.getElementById('payment-view').classList.remove('hidden');
-                    
-                    startChecking(orderId);
-                }
-            } catch (e) { 
-                alert("Lỗi máy chủ!"); 
-                btn.disabled = false;
-                btn.innerHTML = `<span>XÁC NHẬN MUA NGAY</span><i data-lucide="arrow-right" class="w-5 h-5"></i>`;
-            }
-        }
-
-        function startChecking(orderId) {
             checkTimer = setInterval(async () => {
                 try {
-                    const res = await fetch(`/api/check-status?orderId=${orderId}`);
-                    const data = await res.json();
-                    if(data.status === 'completed') {
+                    const response = await fetch(`/api/check-status?orderId=${orderId}`);
+                    const data = await response.json();
+                    
+                    console.log("Trạng thái hiện tại:", data.status);
+
+                    // Khớp chính xác trạng thái 'completed' từ API
+                    if (data.status === 'completed' || data.status === 'complete') {
                         clearInterval(checkTimer);
+                        
+                        // Hiệu ứng chuyển màn hình
                         document.getElementById('payment-loading').classList.add('hidden');
                         document.getElementById('payment-success').classList.remove('hidden');
+                        
+                        // Cập nhật lại icons
                         lucide.createIcons();
                     }
-                } catch (e) { console.log("Đang chờ thanh toán..."); }
+                } catch (error) {
+                    console.error("Lỗi kết nối API:", error);
+                }
             }, 3000);
         }
+
+        function copyContent() {
+            const content = document.getElementById('display-content').innerText;
+            navigator.clipboard.writeText(content);
+            alert("Đã sao chép nội dung chuyển khoản!");
+        }
+
+        // Tự động tạo một đơn test khi vừa load trang (Xóa phần này khi bạn tích hợp Form mua hàng)
+        window.onload = () => {
+            createOrder('WINDOWS-11-PRO', 150000, 1, 'khach-hang@gmail.com');
+        };
     </script>
 </body>
 </html>
