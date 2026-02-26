@@ -220,8 +220,8 @@
                 });
 
                 if(res.ok) {
-                    const STK = "123456789"; // THAY STK CỦA BẠN
-                    const BANK = "MB";       // THAY MÃ NGÂN HÀNG (MB, VCB...)
+                    const STK = "134150399"; // THAY STK CỦA BẠN
+                    const BANK = "ACB";       // THAY MÃ NGÂN HÀNG (MB, VCB...)
                     const content = `${orderId}_${phone}`;
                     
                     document.getElementById('qr-img').src = `https://img.vietqr.io/image/${BANK}-${STK}-compact2.png?amount=${totalStr}&addInfo=${content}`;
