@@ -218,7 +218,7 @@
                 if (res.ok) {
                     const STK = "134150399"; 
                     const BANK = "ACB"; 
-                    const TEMPLATE = "compact"; 
+                    const TEMPLATE = "compact2"; 
                     const qrUrl = `https://img.vietqr.io/image/${BANK}-${STK}-${TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
                     
                     document.getElementById('qr-img').src = qrUrl;
