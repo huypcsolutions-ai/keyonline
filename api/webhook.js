@@ -5,9 +5,8 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// --- HÀM GHI LỖI TỰ ĐỘNG ---
 async function logError(error, context, reqData = null) {
-    console.error(`[${context}]`, error);
+    console.error(`[${context}]`, error.message);
     try {
         await supabase.from('errors_logs').insert([{
             error_message: error.message,
@@ -16,68 +15,74 @@ async function logError(error, context, reqData = null) {
             request_data: reqData
         }]);
     } catch (dbErr) {
-        console.error("Không thể ghi log vào Database:", dbErr);
+        console.error("Không thể ghi log vào DB:", dbErr.message);
     }
 }
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    // Lấy dữ liệu body để lưu nếu có lỗi
     const body = req.body;
+    
+    // 🛡️ KIỂM TRA TOKEN BẢO MẬT
+    const authHeader = req.headers['authorization'] || '';
+    const sepayToken = process.env.SEPAY_API_KEY;
+    if (!sepayToken || !authHeader.includes(sepayToken)) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     try {
-        // 1. Kiểm tra Token bảo mật
-        const authHeader = req.headers['authorization'] || '';
-        const sepayToken = process.env.SEPAY_API_KEY;
+        // 🔍 LẤY DỮ LIỆU (Sửa lại theo đúng log của bạn: dùng 'description' hoặc 'content')
+        const transferAmount = body.transferAmount;
+        const rawContent = body.description || body.content || ""; 
 
-        if (!sepayToken || !authHeader.includes(sepayToken)) {
-            // Ghi lỗi nếu có kẻ cố tình truy cập trái phép
-            await logError(new Error("Unauthorized Access"), "Webhook_Auth", { header: authHeader });
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        const { transferAmount, transferContent, gateway } = body;
-
-        // 2. Lọc mã đơn hàng
-        const orderMatch = transferContent.match(/ORD\d+/);
+        // 🎯 REGEX: Trích xuất mã ORD (Ví dụ: "IB ORD618772" -> "ORD618772")
+        const orderMatch = rawContent.match(/ORD\d+/);
         const pureOrderId = orderMatch ? orderMatch[0] : null;
 
         if (!pureOrderId) {
-            await logError(new Error("Mã đơn hàng không hợp lệ"), "Webhook_Regex", body);
-            return res.status(200).json({ success: false, message: "No OrderID" });
+            await logError(new Error("Không tìm thấy mã ORD trong description"), "Webhook_No_ID", body);
+            return res.status(200).json({ success: false, message: "No OrderID found" });
         }
 
-        // 3. Xử lý Database
+        // 📝 LƯU TRANSACTION (Ghi log giao dịch vào bảng transactions)
+        await supabase.from('transactions').insert([{
+            order_id: pureOrderId,
+            content: rawContent,
+            transfer_amount: transferAmount,
+            transfer_type: body.gateway || 'ACB'
+        }]);
+
+        // 🏦 TÌM ĐƠN HÀNG
         const { data: order, error: fetchError } = await supabase
             .from('orders')
             .select('*')
             .eq('order_id', pureOrderId)
-            .single();
+            .maybeSingle();
 
         if (fetchError || !order) {
-            await logError(new Error(`Không tìm thấy đơn hàng: ${pureOrderId}`), "Webhook_DB_Fetch", body);
+            await logError(new Error(`Đơn hàng ${pureOrderId} không tồn tại`), "Webhook_DB_NotFound", body);
             return res.status(200).json({ success: false, message: "Order not found" });
         }
 
-        // 4. Khớp tiền và cập nhật
+        if (order.status === 'completed') return res.status(200).json({ success: true });
+
+        // 💰 KIỂM TRA SỐ TIỀN VÀ CẬP NHẬT
         if (Number(transferAmount) >= Number(order.amount)) {
             const { error: updateError } = await supabase
                 .from('orders')
                 .update({ status: 'completed' })
                 .eq('order_id', pureOrderId);
 
-            if (updateError) throw updateError; // Ném lỗi để hàm catch xử lý
-
+            if (updateError) throw updateError;
             return res.status(200).json({ success: true });
         } else {
-            await logError(new Error("Số tiền chuyển khoản không đủ"), "Webhook_Amount_Mismatch", body);
+            await logError(new Error(`Sai tiền: Cần ${order.amount} - Nhận ${transferAmount}`), "Webhook_Money_Short", body);
             return res.status(200).json({ success: false });
         }
 
     } catch (err) {
-        // 🔥 BẤT CỨ LỖI HỆ THỐNG NÀO CŨNG CHẠY VÀO ĐÂY
-        await logError(err, "Webhook_Critical_System", body);
-        return res.status(500).json({ error: "Internal Server Error" });
+        await logError(err, "Webhook_Final_Catch", body);
+        return res.status(500).json({ error: "Internal Server Error", detail: err.message });
     }
 }
