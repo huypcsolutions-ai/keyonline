@@ -3,256 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Key Store - Thanh Toán Tự Động</title>
+    <title>FastKey Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
-        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .product-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
-    </style>
+    <style>.hidden { display: none; }</style>
 </head>
-<body class="p-4 md:p-10">
-
-    <div class="max-w-6xl mx-auto">
-        <div id="catalog-view">
-            <header class="text-center mb-12">
-                <h1 class="text-4xl font-extrabold text-slate-900 mb-2 italic">FAST<span class="text-blue-600">KEY</span></h1>
-                <p class="text-slate-500 font-medium">Hệ thống cung cấp Key bản quyền tự động 24/7</p>
-            </header>
-            <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="col-span-full text-center py-20">
-                    <div class="spinner mx-auto"></div>
-                    <p class="mt-4 text-slate-400">Đang tải kho hàng...</p>
-                </div>
-            </div>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <div id="step-1">
+            <h2 class="text-2xl font-bold mb-6">Chọn sản phẩm</h2>
+            <div id="product-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </div>
 
-        <div id="checkout-view" class="hidden max-w-xl mx-auto">
-            <button onclick="showCatalog()" class="mb-6 text-slate-400 font-bold flex items-center hover:text-blue-600 transition">
-                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> QUAY LẠI CỬA HÀNG
-            </button>
-
-            <div class="bg-white rounded-[2.5rem] shadow-2xl p-6 md:p-8 space-y-8 border border-slate-100">
-                <div class="flex items-center space-x-5 bg-slate-50 p-5 rounded-[2rem] border border-slate-100">
-                    <img id="check-img" src="" class="w-20 h-20 object-contain drop-shadow-md">
-                    <div>
-                        <h3 id="check-name" class="font-bold text-xl text-slate-800 leading-tight"></h3>
-                        <p id="check-desc" class="text-xs text-slate-500 mt-1"></p>
-                    </div>
-                </div>
-
-                <div class="space-y-5">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Số lượng</label>
-                            <input type="number" id="qty" value="1" min="1" onchange="updateTotal()" 
-                                class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 font-bold outline-none">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Mã giảm giá</label>
-                            <div class="flex space-x-2">
-                                <input type="text" id="coupon" placeholder="CODE" 
-                                    class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 font-bold uppercase outline-none">
-                                <button onclick="applyCoupon()" class="bg-slate-800 text-white px-4 rounded-2xl hover:bg-black transition">
-                                    <i data-lucide="ticket" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Email nhận Key</label>
-                        <input type="email" id="cust_email" placeholder="example@gmail.com" 
-                            class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Số điện thoại</label>
-                        <input type="tel" id="cust_phone" placeholder="09xxxxxxx" 
-                            class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl shadow-slate-200">
-                    <div class="flex justify-between items-center opacity-70 text-sm mb-1">
-                        <span>Đơn giá: <span id="unit-price">0đ</span></span>
-                        <span id="discount-tag" class="hidden text-emerald-400 font-bold">-0%</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold">Tổng thanh toán:</span>
-                        <span id="txt-total" class="text-3xl font-black text-blue-400">0đ</span>
-                    </div>
-                </div>
-
-                <button id="btn-pay" onclick="confirmOrder()" class="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-extrabold shadow-xl shadow-blue-100 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center space-x-2">
-                    <span>XÁC NHẬN MUA NGAY</span>
-                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                </button>
-            </div>
+        <div id="step-2" class="hidden max-w-md mx-auto bg-white p-6 rounded-2xl shadow-sm border">
+            <h2 class="text-xl font-bold mb-4 text-center">Thông tin nhận hàng</h2>
+            <input type="email" id="email" placeholder="Email của bạn..." class="w-full p-3 border rounded-xl mb-4 outline-none focus:ring-2 focus:ring-blue-500">
+            <button onclick="createOrder()" id="btn-confirm" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Xác nhận đơn hàng</button>
         </div>
 
-        <div id="payment-view" class="hidden max-w-md mx-auto text-center space-y-8 py-4">
-            <div id="payment-loading" class="animate-in fade-in duration-500">
-                <h3 class="text-2xl font-extrabold text-slate-800">Quét mã VietQR</h3>
-                <div class="bg-white p-4 border-2 border-slate-100 rounded-[3rem] inline-block shadow-2xl my-6">
-                    <img id="qr-img" src="" class="w-64 h-64 mx-auto object-contain">
-                </div>
-                <div class="px-6 space-y-4">
-                    <a id="smart-link" href="#" target="_blank" class="block w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center space-x-2 shadow-lg shadow-slate-200">
-                        <i data-lucide="smartphone" class="w-4 h-4"></i>
-                        <span>MỞ APP NGÂN HÀNG</span>
-                    </a>
-                    <div class="flex items-center justify-center space-x-3 text-blue-600 bg-blue-50 py-3 rounded-2xl">
-                        <div class="spinner !w-4 !h-4"></div>
-                        <span class="text-xs font-bold uppercase tracking-widest italic">Đang chờ xác nhận giao dịch...</span>
-                    </div>
-                </div>
+        <div id="step-3" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8 bg-white p-6 rounded-2xl shadow-sm border">
+            <div>
+                <h2 class="font-bold text-lg mb-4">Chi tiết đơn hàng</h2>
+                <p id="info-name" class="py-2 border-b"></p>
+                <p id="info-id" class="py-2 border-b font-mono text-blue-600"></p>
+                <p id="info-total" class="py-2 text-xl font-bold text-blue-600"></p>
             </div>
-
-            <div id="payment-success" class="hidden space-y-6">
-                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-100">
-                    <i data-lucide="check" class="w-10 h-10"></i>
+            <div class="text-center">
+                <div id="payment-loading">
+                    <img id="qr-img" class="mx-auto w-48 h-48 mb-4 border p-2 rounded-lg">
+                    <p class="animate-pulse text-blue-600 font-medium">Đang chờ thanh toán...</p>
+                    <div class="mt-4 bg-slate-100 p-3 rounded font-mono font-bold" id="info-content"></div>
                 </div>
-                <h2 class="text-3xl font-black text-slate-800">Thanh Toán Thành Công!</h2>
-                <p class="text-slate-500">Mã Key đã được gửi vào Email của bạn. Cảm ơn bạn!</p>
-                <button onclick="location.reload()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold shadow-lg shadow-blue-100 transition">TIẾP TỤC MUA SẮM</button>
+                <div id="payment-success" class="hidden">
+                    <div class="text-green-600 text-5xl mb-2">✔</div>
+                    <h2 class="text-2xl font-bold">Thành công!</h2>
+                    <p class="mb-4">Vui lòng kiểm tra email.</p>
+                    <button onclick="location.reload()" class="bg-black text-white px-6 py-2 rounded-lg">Quay lại</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let allProducts = [], selectedProduct = null, discountPercent = 0, checkTimer = null;
-
-        // Khởi tạo trang: Lấy danh sách sản phẩm
-        window.onload = async () => {
-            lucide.createIcons();
-            try {
-                const res = await fetch('/api/get-all-products');
-                allProducts = await res.json();
-                renderCatalog();
-            } catch (e) { console.error("Lỗi tải dữ liệu"); }
-        };
-
-        function renderCatalog() {
-            const list = document.getElementById('product-list');
-            list.innerHTML = allProducts.map(p => `
-                <div class="product-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between">
-                    <div>
-                        <img src="${p.image_url}" class="w-20 h-20 mb-6 object-contain">
-                        <h3 class="text-xl font-bold text-slate-800">${p.name}</h3>
-                        <p class="text-slate-400 text-sm mt-2 line-clamp-2 font-medium">${p.description}</p>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-slate-50 mt-6 pt-6">
-                        <span class="text-2xl font-black text-blue-600">${p.price.toLocaleString()}đ</span>
-                        <button onclick="openCheckout('${p.code}')" class="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-lg shadow-slate-100">Mua ngay</button>
-                    </div>
+        let sel = {};
+        async function load() {
+            const res = await fetch('/api/get-products');
+            const data = await res.json();
+            document.getElementById('product-grid').innerHTML = data.map(p => `
+                <div class="bg-white p-5 rounded-2xl border shadow-sm">
+                    <h3 class="font-bold text-lg">${p.name}</h3>
+                    <p class="text-2xl font-bold text-blue-600 my-3">${p.price.toLocaleString()}đ</p>
+                    <button onclick="selP('${p.product_code}','${p.name}',${p.price})" class="w-full bg-slate-100 py-2 rounded-lg font-bold hover:bg-blue-600 hover:text-white">Mua ngay</button>
                 </div>
             `).join('');
             lucide.createIcons();
         }
 
-        function openCheckout(code) {
-            selectedProduct = allProducts.find(p => p.code === code);
-            discountPercent = 0;
-            document.getElementById('check-img').src = selectedProduct.image_url;
-            document.getElementById('check-name').innerText = selectedProduct.name;
-            document.getElementById('check-desc').innerText = selectedProduct.description;
-            document.getElementById('unit-price').innerText = selectedProduct.price.toLocaleString() + 'đ';
-            updateTotal();
+        function selP(c,n,p){ sel={c,n,p}; document.getElementById('step-1').classList.add('hidden'); document.getElementById('step-2').classList.remove('hidden'); }
+
+        async function createOrder() {
+            const email = document.getElementById('email').value;
+            if(!email.includes('@')) return alert("Email sai!");
+            const id = "ORD" + Math.floor(Math.random()*900000);
             
-            document.getElementById('catalog-view').classList.add('hidden');
-            document.getElementById('checkout-view').classList.remove('hidden');
-            lucide.createIcons();
-        }
+            document.getElementById('btn-confirm').innerText = "Đang xử lý...";
+            await fetch('/api/create-order', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({orderId: id, productCode: sel.c, amount: sel.p, email: email})
+            });
 
-        function showCatalog() { location.reload(); }
-
-        function updateTotal() {
-            const qty = parseInt(document.getElementById('qty').value) || 1;
-            const subtotal = selectedProduct.price * qty;
-            const finalTotal = subtotal * (1 - discountPercent/100);
+            document.getElementById('info-name').innerText = sel.n;
+            document.getElementById('info-id').innerText = id;
+            document.getElementById('info-total').innerText = sel.p.toLocaleString() + "đ";
+            document.getElementById('info-content').innerText = id;
+            document.getElementById('qr-img').src = `https://qr.sepay.vn/img?acc=134150399&bank=ACB&amount=${sel.p}&des=${id}`;
             
-            document.getElementById('txt-total').innerText = Math.round(finalTotal).toLocaleString() + 'đ';
-            
-            if(discountPercent > 0) {
-                document.getElementById('discount-tag').classList.remove('hidden');
-                document.getElementById('discount-tag').innerText = `-${discountPercent}%`;
-            } else {
-                document.getElementById('discount-tag').classList.add('hidden');
-            }
-        }
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-3').classList.remove('hidden');
 
-        async function applyCoupon() {
-            const code = document.getElementById('coupon').value.trim();
-            if(!code) return;
-            try {
-                const res = await fetch(`/api/check-coupon?code=${code}`);
-                if(res.ok) {
-                    const data = await res.json();
-                    discountPercent = data.discount_percent;
-                    alert(`Thành công! Bạn được giảm ${discountPercent}%`);
-                    updateTotal();
-                } else { alert("Mã giảm giá không hợp lệ!"); }
-            } catch (e) { alert("Lỗi kết nối mã giảm giá!"); }
-        }
-
-        async function confirmOrder() {
-            const email = document.getElementById('cust_email').value;
-            const phone = document.getElementById('cust_phone').value;
-            const qty = document.getElementById('qty').value;
-            const totalStr = document.getElementById('txt-total').innerText.replace(/\D/g,'');
-            const orderId = "ORD" + Math.floor(100000 + Math.random() * 899999);
-
-            if(!email.includes('@') || email.length < 5) return alert("Vui lòng nhập Email chính xác!");
-
-            const btn = document.getElementById('btn-pay');
-            btn.disabled = true;
-            btn.innerHTML = `<div class="spinner !border-white !border-t-transparent mx-auto"></div>`;
-
-            try {
-                const res = await fetch('/api/create-order', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ order_id: orderId, email, phone, total: parseInt(totalStr) })
-                });
-
-                if(res.ok) {
-                    const STK = "123456789"; // THAY STK CỦA BẠN
-                    const BANK = "MB";       // THAY MÃ NGÂN HÀNG (MB, VCB...)
-                    const content = `${orderId}_${phone}`;
-                    
-                    document.getElementById('qr-img').src = `https://img.vietqr.io/image/${BANK}-${STK}-compact2.png?amount=${totalStr}&addInfo=${content}`;
-                    document.getElementById('smart-link').href = `https://dl.vietqr.io/pay?ba=${STK}@${BANK}&am=${totalStr}&tn=${encodeURIComponent(content)}`;
-                    
-                    document.getElementById('checkout-view').classList.add('hidden');
-                    document.getElementById('payment-view').classList.remove('hidden');
-                    
-                    startChecking(orderId);
+            setInterval(async () => {
+                const r = await fetch(`/api/check-status?orderId=${id}`);
+                const d = await r.json();
+                if(d.status === 'completed') {
+                    document.getElementById('payment-loading').classList.add('hidden');
+                    document.getElementById('payment-success').classList.remove('hidden');
                 }
-            } catch (e) { 
-                alert("Lỗi máy chủ!"); 
-                btn.disabled = false;
-                btn.innerHTML = `<span>XÁC NHẬN MUA NGAY</span><i data-lucide="arrow-right" class="w-5 h-5"></i>`;
-            }
-        }
-
-        function startChecking(orderId) {
-            checkTimer = setInterval(async () => {
-                try {
-                    const res = await fetch(`/api/check-status?orderId=${orderId}`);
-                    const data = await res.json();
-                    if(data.status === 'completed') {
-                        clearInterval(checkTimer);
-                        document.getElementById('payment-loading').classList.add('hidden');
-                        document.getElementById('payment-success').classList.remove('hidden');
-                        lucide.createIcons();
-                    }
-                } catch (e) { console.log("Đang chờ thanh toán..."); }
             }, 3000);
         }
+        window.onload = load;
     </script>
 </body>
 </html>
