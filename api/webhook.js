@@ -4,38 +4,48 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-  // Kiểm tra bảo mật (API Key)
+  // Kiểm tra bảo mật API Key
   const authHeader = req.headers['authorization'];
   if (!authHeader || !authHeader.includes(process.env.SEPAY_API_KEY)) {
-    return res.status(401).json({ error: 'Sai API Key' });
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const payload = req.body;
-  const { content, transferAmount, gateway } = payload;
+  const { content, transferAmount } = req.body;
 
   try {
-    // 1. Tách Order ID
-    const orderId = content.split('_')[0];
-
-    // 2. GHI NHẬT KÝ GIAO DỊCH (Để theo dõi)
+    // 1. Ghi log giao dịch để đối soát (Rất quan trọng khi bị lỗi)
     await supabase.from('transactions').insert([{
-      order_id: orderId,
       content: content,
       transfer_amount: transferAmount,
-      gateway: gateway,
-      raw_data: payload
+      raw_data: req.body
     }]);
 
-    // 3. Cập nhật đơn hàng
-    const { data: order } = await supabase
+    // 2. TÌM ĐƠN HÀNG THÔNG MINH
+    // Tìm đơn hàng mà 'content' của ngân hàng CHỨA 'order_id' của chúng ta
+    // Ví dụ: "IB ORD782921" chứa "ORD782921"
+    const { data: orders, error } = await supabase
       .from('orders')
       .select('*')
-      .eq('order_id', orderId)
-      .single();
+      .eq('status', 'pending'); // Lấy các đơn đang chờ
 
-    if (order && Number(transferAmount) >= Number(order.amount)) {
-      await supabase.from('orders').update({ status: 'completed' }).eq('order_id', orderId);
-      // Gửi mail tại đây...
+    if (error) throw error;
+
+    // Lọc thủ công để tìm đơn hàng khớp mã
+    const matchedOrder = orders.find(o => content.toUpperCase().includes(o.order_id.toUpperCase()));
+
+    if (matchedOrder) {
+      // 3. Kiểm tra số tiền
+      if (Number(transferAmount) >= Number(matchedOrder.amount)) {
+        // 4. Cập nhật trạng thái
+        await supabase
+          .from('orders')
+          .update({ status: 'completed' })
+          .eq('order_id', matchedOrder.order_id);
+          
+        console.log(`Khớp đơn hàng thành công: ${matchedOrder.order_id}`);
+      }
+    } else {
+      console.log(`Nội dung "${content}" không khớp với đơn hàng pending nào.`);
     }
 
     return res.status(200).json({ success: true });
