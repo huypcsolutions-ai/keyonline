@@ -70,26 +70,70 @@ export default async function handler(req, res) {
             await supabase.from('orders').update({ status: 'completed' }).eq('order_id', pureOrderId);
 
             // 6. GỬI MAIL QUA GMAIL
-            const mailOptions = {
-                from: `"Shop Key Online" <${process.env.GMAIL_USER}>`,
-                to: order.customer_email,
-                subject: `[Thành công] Key sản phẩm cho đơn hàng ${pureOrderId}`,
-                html: `
-                    <div style="font-family: sans-serif; line-height: 1.6; color: #333;">
-                        <h2 style="color: #4CAF50;">Thanh toán thành công!</h2>
-                        <p>Chào bạn, đây là mã sản phẩm bạn đã mua:</p>
-                        <div style="background: #f4f4f4; padding: 15px; border-left: 5px solid #4CAF50; font-size: 18px;">
-                            <strong>${keyString}</strong>
-                        </div>
-                        <p>Mã đơn hàng: <b>${pureOrderId}</b></p>
-                        <p>Sản phẩm: ${order.code}</p>
-                        <hr>
-                        <p style="font-size: 12px; color: #777;">Cảm ơn bạn đã tin tưởng dịch vụ của chúng tôi.</p>
-                    </div>
-                `,
-            };
 
-            await transporter.sendMail(mailOptions);
+// ... (các bước 1-5 giữ nguyên)
+
+// 6. TẠO DANH SÁCH KEY DẠNG BẢNG CHO EMAIL
+const keyRows = keys.map(k => `
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; color: #555;">${order.code}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; color: #2e7d32; font-weight: bold; font-family: monospace;">${k.serial_key}</td>
+    </tr>
+`).join('');
+
+const mailOptions = {
+    from: `"Huypcsolutions Support" <${process.env.GMAIL_USER}>`,
+    to: order.customer_email,
+    subject: `🎉 Thanh toán thành công đơn hàng #${pureOrderId}`,
+    html: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+            <div style="background-color: #4caf50; padding: 20px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 24px;">🎉 Thanh toán thành công!</h1>
+            </div>
+            
+            <div style="padding: 30px; background-color: white;">
+                <p style="margin-top: 0;">Chào bạn,</p>
+                <p>Cảm ơn bạn đã ủng hộ <strong>Huypcsolutions</strong>. Đơn hàng của bạn đã được thanh toán hoàn tất.</p>
+                
+                <div style="background-color: #f9f9f9; border: 1px dashed #4caf50; padding: 15px; border-radius: 4px; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 14px;"><strong>Mã đơn hàng:</strong> #${pureOrderId}</p>
+                    <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Sản phẩm:</strong> ${order.code}</p>
+                </div>
+
+                <h3 style="color: #4caf50; border-bottom: 2px solid #4caf50; padding-bottom: 5px;">🔑 Danh sách Key / Serial của bạn:</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2; text-align: left;">
+                            <th style="padding: 12px; font-size: 13px; text-transform: uppercase;">Sản phẩm</th>
+                            <th style="padding: 12px; font-size: 13px; text-transform: uppercase;">Key / Serial</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${keyRows}
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 30px;">
+                    <h3 style="color: #4caf50; display: flex; align-items: center;">🛠️ Hướng dẫn kích hoạt:</h3>
+                    <ol style="padding-left: 20px; color: #555; font-size: 14px; line-height: 1.8;">
+                        <li>Truy cập link: <a href="#" style="color: #4caf50; font-weight: bold; text-decoration: none;">Kích hoạt tại đây</a></li>
+                        <li>Đăng nhập tài khoản của bạn.</li>
+                        <li>Nhập <strong>"Mã key"</strong> để hoàn tất.</li>
+                    </ol>
+                </div>
+
+                <p style="font-size: 13px; color: #888; margin-top: 30px; border-top: 1px solid #eee; pt: 20px;">
+                    Nếu gặp khó khăn, vui lòng liên hệ Zalo hỗ trợ kỹ thuật.<br>
+                    Trân trọng,<br>
+                    <strong>Đội ngũ Huypcsolutions Support</strong>
+                </p>
+            </div>
+        </div>
+    `,
+};
+
+await transporter.sendMail(mailOptions);
+
             return res.status(200).json({ success: true, message: "Email sent with key" });
         }
 
