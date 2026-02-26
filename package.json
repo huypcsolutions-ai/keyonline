@@ -1,7 +1,8 @@
 {
-  "name": "keystore",
+  "name": "keystore-system",
   "version": "1.0.0",
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "nodemailer": "^6.9.10"
   }
 }
