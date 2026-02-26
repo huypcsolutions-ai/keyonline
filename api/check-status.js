@@ -3,15 +3,22 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 
 module.exports = async (req, res) => {
   const { orderId } = req.query;
+
   try {
     const { data, error } = await supabase
       .from('orders')
       .select('status')
       .eq('order_id', orderId)
-      .single();
+      .maybeSingle(); // Sử dụng maybeSingle để không báo lỗi khi không tìm thấy
+
     if (error) throw error;
-    res.status(200).json(data);
+
+    if (!data) {
+      return res.status(200).json({ status: 'not_found', message: 'Không tìm thấy đơn hàng trong DB' });
+    }
+
+    return res.status(200).json(data);
   } catch (err) {
-    res.status(404).json({ status: 'not_found' });
+    return res.status(500).json({ error: err.message });
   }
 };
