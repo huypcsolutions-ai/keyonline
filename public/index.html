@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Key Store - Thanh Toán Tự Động</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-900">
+
+<div class="max-w-md mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center space-x-2">
+            <div class="bg-blue-600 p-2 rounded-lg text-white">
+                <i data-lucide="shield-check"></i>
+            </div>
+            <h1 class="text-xl font-bold tracking-tight">KeyStore VN</h1>
+        </div>
+        <div id="stock-badge" class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">
+            Đang còn hàng
+        </div>
+    </div>
+
+    <div class="glass-card rounded-3xl shadow-2xl shadow-slate-200/50 overflow-hidden border border-white">
+        
+        <div id="step-1" class="p-6 space-y-6">
+            <div class="text-center space-y-3">
+                <img src="https://cdn-icons-png.flaticon.com/512/5968/5968313.png" alt="Windows 11" class="w-24 h-24 mx-auto drop-shadow-lg">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Windows 11 Pro</h2>
+                    <p class="text-sm text-slate-500">Kích hoạt vĩnh viễn • Cập nhật chính hãng</p>
+                </div>
+                <div class="flex justify-center items-baseline space-x-1">
+                    <span class="text-3xl font-black text-blue-600">100.000đ</span>
+                    <span class="text-slate-400 line-through text-sm">250.000đ</span>
+                </div>
+            </div>
+
+            <div class="space-y-4 pt-4 border-t border-slate-100">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase ml-1">Số lượng</label>
+                        <div class="relative">
+                            <i data-lucide="layers" class="absolute left-3 top-3 w-4 h-4 text-slate-400"></i>
+                            <input type="number" id="qty" value="1" min="1" max="50" onchange="updateUI()" 
+                                class="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 transition">
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-500 uppercase ml-1">Mã giảm giá</label>
+                        <div class="relative flex space-x-2">
+                            <input type="text" id="coupon" placeholder="CODE..." 
+                                class="w-full px-4 py-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 uppercase text-sm font-bold">
+                            <button onclick="applyCoupon()" class="bg-slate-800 text-white px-3 rounded-xl hover:bg-slate-700 transition">
+                                <i data-lucide="ticket" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Email nhận Key</label>
+                    <div class="relative">
+                        <i data-lucide="mail" class="absolute left-3 top-3 w-4 h-4 text-slate-400"></i>
+                        <input type="email" id="email" placeholder="example@gmail.com" 
+                            class="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase ml-1">Số điện thoại</label>
+                    <div class="relative">
+                        <i data-lucide="phone" class="absolute left-3 top-3 w-4 h-4 text-slate-400"></i>
+                        <input type="tel" id="phone" placeholder="09xxxxxxx" 
+                            class="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-2xl space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-600">Tạm tính:</span>
+                    <span id="txt-subtotal" class="font-semibold">100.000đ</span>
+                </div>
+                <div id="row-discount" class="hidden flex justify-between text-sm text-emerald-600">
+                    <span>Giảm giá:</span>
+                    <span id="txt-discount" class="font-semibold">-0đ</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-blue-100">
+                    <span class="font-bold text-slate-800">Tổng thanh toán:</span>
+                    <span id="txt-total" class="text-xl font-black text-blue-700">100.000đ</span>
+                </div>
+            </div>
+
+            <button onclick="handleOrder()" id="btn-submit" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-xl shadow-blue-200 hover:bg-blue-700 transition flex items-center justify-center space-x-2">
+                <span>XÁC NHẬN THANH TOÁN</span>
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div id="step-2" class="hidden p-8 text-center space-y-6">
+            <div class="space-y-2">
+                <h3 class="text-xl font-bold text-slate-800">Quét mã VietQR</h3>
+                <p class="text-xs text-slate-500">Vui lòng không thay đổi nội dung chuyển khoản</p>
+            </div>
+            
+            <div class="relative inline-block p-4 bg-white border-4 border-slate-50 rounded-3xl shadow-inner">
+                <img id="qr-img" src="" class="w-64 h-64 mx-auto rounded-lg">
+                <div class="absolute inset-0 border-2 border-blue-500/20 rounded-3xl pointer-events-none"></div>
+            </div>
+
+            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex items-center space-x-3 text-left">
+                <div class="loader ease-linear rounded-full border-2 border-t-2 border-slate-200 h-5 w-5"></div>
+                <p class="text-xs text-amber-800 font-medium">Đang chờ tín hiệu thanh toán từ ngân hàng...</p>
+            </div>
+
+            <button onclick="window.location.reload()" class="text-slate-400 text-sm font-medium hover:text-slate-600">
+                <i data-lucide="chevron-left" class="w-4 h-4 inline mb-1"></i> Quay lại
+            </button>
+        </div>
+    </div>
+
+    <p class="text-center mt-8 text-slate-400 text-xs">
+        &copy; 2026 KeyStore Service • Bảo mật thanh toán qua SePay
+    </p>
+</div>
+
+<script>
+    // Khởi tạo Icons
+    lucide.createIcons();
+
+    let config = {
+        unitPrice: 100000,
+        discountPercent: 0,
+        currentStock: 50 // Giả sử tồn kho là 50
+    };
+
+    function updateUI() {
+        let qty = parseInt(document.getElementById('qty').value) || 1;
+        
+        // Kiểm tra tồn kho
+        if(qty > config.currentStock) {
+            alert("Rất tiếc, chỉ còn " + config.currentStock + " sản phẩm trong kho.");
+            document.getElementById('qty').value = config.currentStock;
+            qty = config.currentStock;
+        }
+
+        let subtotal = qty * config.unitPrice;
+        let discountAmt = subtotal * (config.discountPercent / 100);
+        let total = subtotal - discountAmt;
+
+        document.getElementById('txt-subtotal').innerText = subtotal.toLocaleString('vi-VN') + 'đ';
+        document.getElementById('txt-total').innerText = total.toLocaleString('vi-VN') + 'đ';
+        
+        if(config.discountPercent > 0) {
+            document.getElementById('row-discount').classList.remove('hidden');
+            document.getElementById('txt-discount').innerText = '-' + discountAmt.toLocaleString('vi-VN') + 'đ';
+        }
+    }
+
+    async function applyCoupon() {
+        const code = document.getElementById('coupon').value.trim();
+        if(!code) return;
+
+        try {
+            const res = await fetch(`/api/check-coupon?code=${code}`);
+            if(res.ok) {
+                const data = await res.json();
+                config.discountPercent = data.discount_percent;
+                alert(`Áp dụng mã giảm giá ${data.discount_percent}% thành công!`);
+                updateUI();
+            } else {
+                alert("Mã giảm giá không chính xác hoặc hết hạn.");
+            }
+        } catch (e) {
+            console.error("Lỗi kiểm tra mã");
+        }
+    }
+
+    async function handleOrder() {
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        const qty = document.getElementById('qty').value;
+        const total = document.getElementById('txt-total').innerText.replace(/\D/g,'');
+
+        if(!email.includes('@') || phone.length < 10) {
+            alert("Vui lòng nhập đầy đủ thông tin Email và Số điện thoại!");
+            return;
+        }
+
+        const btn = document.getElementById('btn-submit');
+        btn.disabled = true;
+        btn.innerHTML = `<span class="loader ease-linear rounded-full border-2 border-t-2 border-white h-5 w-5 mr-3"></span> Đang xử lý...`;
+
+        const orderId = "ORD" + Math.floor(10000 + Math.random() * 90000);
+
+        // Gọi API lưu đơn hàng lên Supabase
+        try {
+            const res = await fetch('/api/create-order', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ order_id: orderId, email, phone, total, qty })
+            });
+
+            if(res.ok) {
+                // Hiển thị QR (Thay STK của bạn vào đây)
+                const STK = "123456789"; 
+                const NGAN_HANG = "MB";
+                const qrUrl = `https://img.vietqr.io/image/${NGAN_HANG}-${STK}-compact2.png?amount=${total}&addInfo=${orderId}_${phone}`;
+                
+                document.getElementById('qr-img').src = qrUrl;
+                document.getElementById('step-1').classList.add('hidden');
+                document.getElementById('step-2').classList.remove('hidden');
+            }
+        } catch (e) {
+            alert("Lỗi hệ thống, vui lòng thử lại sau.");
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
