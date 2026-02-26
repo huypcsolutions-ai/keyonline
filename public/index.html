@@ -195,17 +195,24 @@
                     })
                 });
 
-                if (res.ok) {
-                    // ĐỔI LẠI STK VÀ BANK CỦA BẠN TẠI ĐÂY
+     if (res.ok) {
+                    // THÔNG TIN TÀI KHOẢN CỦA BẠN
                     const STK = "134150399"; 
-                    const BANK = "ACB";
-                    const qrUrl = `https://qr.sepay.vn/img?acc=${STK}&bank=${BANK}&amount=${total}&des=${orderId}`;
+                    const BANK = "ACB"; // Mã ngân hàng chuẩn (ACB, VCB, MB...)
+                    const TEMPLATE = "compact"; // Hoặc "qr_only", "print"
                     
+                    // Tạo URL VietQR chuẩn
+                    // Cấu trúc: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>
+                    const qrUrl = `https://img.vietqr.io/image/${BANK}-${STK}-${TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
+                    
+                    // Hiển thị giao diện thanh toán
                     document.getElementById('qr-img').src = qrUrl;
                     document.getElementById('p-content').innerText = orderId;
                     
                     document.getElementById('checkout-view').classList.add('hidden');
                     document.getElementById('payment-view').classList.remove('hidden');
+                    
+                    // Bắt đầu kiểm tra trạng thái thanh toán
                     startChecking(orderId);
                 } else {
                     // Hiển thị LỖI CHÍNH XÁC TỪ DATABASE ra màn hình
