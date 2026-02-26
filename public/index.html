@@ -33,7 +33,7 @@
 
         <div id="checkout-view" class="hidden max-w-xl mx-auto">
             <button onclick="location.reload()" class="mb-6 text-slate-400 font-bold flex items-center hover:text-blue-600 transition">
-                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> QUAY LẠI CỬA HÀNG
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> QUAY LẠI
             </button>
 
             <div class="bg-white rounded-[2.5rem] shadow-2xl p-6 md:p-8 space-y-6 border border-slate-100">
@@ -43,7 +43,7 @@
                     </div>
                     <div>
                         <h3 id="check-name" class="font-bold text-xl text-slate-800 leading-tight">---</h3>
-                        <p id="check-desc" class="text-xs text-slate-500 mt-1">Sản phẩm kỹ thuật số chính hãng</p>
+                        <p class="text-xs text-slate-500 mt-1">Sản phẩm kỹ thuật số chính hãng</p>
                     </div>
                 </div>
 
@@ -58,7 +58,7 @@
                         <div class="flex space-x-2">
                             <input type="text" id="coupon" placeholder="MÃ" 
                                 class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 font-bold uppercase outline-none">
-                            <button onclick="applyCoupon()" class="bg-slate-800 text-white px-4 rounded-2xl hover:bg-black transition">
+                            <button onclick="alert('Tính năng đang cập nhật')" class="bg-slate-800 text-white px-4 rounded-2xl hover:bg-black transition">
                                 <i data-lucide="ticket" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -74,7 +74,6 @@
                 <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl">
                     <div class="flex justify-between items-center opacity-70 text-sm mb-1">
                         <span>Đơn giá: <span id="unit-price">0đ</span></span>
-                        <span id="discount-tag" class="hidden text-emerald-400 font-bold">-0%</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="font-bold text-lg">Tổng thanh toán:</span>
@@ -91,7 +90,7 @@
 
         <div id="payment-view" class="hidden max-w-md mx-auto text-center space-y-8 py-4">
             <div id="payment-loading">
-                <h3 class="text-2xl font-extrabold text-slate-800 italic">QUÉT MÃ VIETQR</h3>
+                <h3 class="text-2xl font-extrabold text-slate-800 italic">QUÉT MÃ CHUYỂN KHOẢN</h3>
                 <div class="bg-white p-4 border-2 border-slate-100 rounded-[3rem] inline-block shadow-2xl my-6">
                     <img id="qr-img" src="" class="w-64 h-64 mx-auto object-contain">
                 </div>
@@ -112,14 +111,14 @@
                     <i data-lucide="check" class="w-10 h-10"></i>
                 </div>
                 <h2 class="text-3xl font-black text-slate-800">Thành Công!</h2>
-                <p class="text-slate-500 px-10">Mã Key đã được gửi vào Email của bạn. Cảm ơn bạn!</p>
+                <p class="text-slate-500 px-10">Mã Key đã được gửi vào Email của bạn.</p>
                 <button onclick="location.reload()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold transition">TIẾP TỤC MUA SẮM</button>
             </div>
         </div>
     </div>
 
     <script>
-        let allProducts = [], selectedProduct = null, discountPercent = 0;
+        let allProducts = [], selectedProduct = null;
 
         window.onload = async () => {
             lucide.createIcons();
@@ -168,35 +167,7 @@
         function updateTotal() {
             const qty = parseInt(document.getElementById('qty').value) || 1;
             const subtotal = selectedProduct.price * qty;
-            const finalTotal = subtotal * (1 - (discountPercent / 100));
-            
-            document.getElementById('txt-total').innerText = Math.round(finalTotal).toLocaleString() + 'đ';
-            
-            if (discountPercent > 0) {
-                document.getElementById('discount-tag').innerText = `-${discountPercent}%`;
-                document.getElementById('discount-tag').classList.remove('hidden');
-            } else {
-                document.getElementById('discount-tag').classList.add('hidden');
-            }
-        }
-
-        async function applyCoupon() {
-            const code = document.getElementById('coupon').value.trim();
-            if (!code) return;
-            // API giả định: /api/check-coupon?code=...
-            try {
-                const res = await fetch(`/api/check-coupon?code=${code}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    discountPercent = data.discount_percent || 0;
-                    alert(`Áp dụng thành công mã giảm giá ${discountPercent}%!`);
-                    updateTotal();
-                } else {
-                    alert("Mã giảm giá không chính xác.");
-                }
-            } catch (e) {
-                alert("Không thể kiểm tra mã lúc này.");
-            }
+            document.getElementById('txt-total').innerText = subtotal.toLocaleString() + 'đ';
         }
 
         async function confirmOrder() {
@@ -216,16 +187,16 @@
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ 
-                        orderId, 
+                        orderId: orderId, 
                         productCode: selectedProduct.code, 
                         amount: total, 
-                        email, 
+                        email: email, 
                         quantity: qty 
                     })
                 });
 
                 if (res.ok) {
-                    // CẤU HÌNH NGÂN HÀNG CỦA BẠN (SEPAY)
+                    // ĐỔI LẠI STK VÀ BANK CỦA BẠN TẠI ĐÂY
                     const STK = "134150399"; 
                     const BANK = "ACB";
                     const qrUrl = `https://qr.sepay.vn/img?acc=${STK}&bank=${BANK}&amount=${total}&des=${orderId}`;
@@ -237,13 +208,16 @@
                     document.getElementById('payment-view').classList.remove('hidden');
                     startChecking(orderId);
                 } else {
-                    alert("Lỗi tạo đơn hàng!");
+                    // Hiển thị LỖI CHÍNH XÁC TỪ DATABASE ra màn hình
+                    const errData = await res.json();
+                    alert("LỖI CƠ SỞ DỮ LIỆU: " + errData.error);
                     btn.disabled = false;
                     btn.innerText = "XÁC NHẬN THANH TOÁN";
                 }
             } catch (e) {
-                alert("Lỗi kết nối Server!");
+                alert("Lỗi kết nối Server! Vui lòng thử lại.");
                 btn.disabled = false;
+                btn.innerText = "XÁC NHẬN THANH TOÁN";
             }
         }
 
@@ -252,7 +226,7 @@
                 try {
                     const res = await fetch(`/api/check-status?orderId=${orderId}`);
                     const data = await res.json();
-                    if (data.status === 'completed' || data.status === 'complete') {
+                    if (data.status === 'completed') {
                         clearInterval(timer);
                         document.getElementById('payment-loading').classList.add('hidden');
                         document.getElementById('payment-success').classList.remove('hidden');
