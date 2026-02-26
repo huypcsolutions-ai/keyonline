@@ -11,7 +11,9 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
         .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .product-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+        .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .product-card:hover { transform: translateY(-8px); shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+        .product-img { width: 80px; height: 80px; object-fit: contain; }
         .hidden { display: none; }
     </style>
 </head>
@@ -38,7 +40,7 @@
 
             <div class="bg-white rounded-[2.5rem] shadow-2xl p-6 md:p-8 space-y-6 border border-slate-100">
                 <div class="flex items-center space-x-5 bg-slate-50 p-5 rounded-[2rem] border border-slate-100">
-                    <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white">
+                    <div id="check-img-container" class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white overflow-hidden">
                         <i data-lucide="package" class="w-8 h-8"></i>
                     </div>
                     <div>
@@ -133,21 +135,28 @@
 
         function renderCatalog() {
             const list = document.getElementById('product-list');
-            list.innerHTML = allProducts.map(p => `
-                <div class="product-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between">
-                    <div>
-                        <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
-                            <i data-lucide="zap"></i>
+            list.innerHTML = allProducts.map(p => {
+                // Kiểm tra nếu có image_url thì hiển thị ảnh, ngược lại hiện icon zap
+                const mediaHtml = p.image_url 
+                    ? `<img src="${p.image_url}" alt="${p.name}" class="product-img">`
+                    : `<i data-lucide="zap" class="w-8 h-8 text-blue-600"></i>`;
+
+                return `
+                    <div class="product-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between">
+                        <div>
+                            <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6 overflow-hidden">
+                                ${mediaHtml}
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-800">${p.name}</h3>
+                            <p class="text-slate-400 text-sm mt-2 line-clamp-2 font-medium">${p.description || 'Giao hàng 24/7'}</p>
                         </div>
-                        <h3 class="text-xl font-bold text-slate-800">${p.name}</h3>
-                        <p class="text-slate-400 text-sm mt-2 line-clamp-2 font-medium">${p.description || 'Giao hàng 24/7'}</p>
+                        <div class="flex items-center justify-between border-t border-slate-50 mt-6 pt-6">
+                            <span class="text-2xl font-black text-blue-600">${Number(p.price).toLocaleString()}đ</span>
+                            <button onclick="openCheckout('${p.code}')" class="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-lg hover:bg-blue-600 transition">Mua ngay</button>
+                        </div>
                     </div>
-                    <div class="flex items-center justify-between border-t border-slate-50 mt-6 pt-6">
-                        <span class="text-2xl font-black text-blue-600">${Number(p.price).toLocaleString()}đ</span>
-                        <button onclick="openCheckout('${p.code}')" class="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-lg hover:bg-blue-600 transition">Mua ngay</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             lucide.createIcons();
         }
 
@@ -157,6 +166,17 @@
 
             document.getElementById('check-name').innerText = selectedProduct.name;
             document.getElementById('unit-price').innerText = Number(selectedProduct.price).toLocaleString() + 'đ';
+            
+            // Cập nhật ảnh trong Checkout View
+            const imgContainer = document.getElementById('check-img-container');
+            if(selectedProduct.image_url) {
+                imgContainer.innerHTML = `<img src="${selectedProduct.image_url}" class="w-full h-full object-cover">`;
+                imgContainer.classList.remove('bg-blue-600');
+            } else {
+                imgContainer.innerHTML = `<i data-lucide="package" class="w-8 h-8 text-white"></i>`;
+                imgContainer.classList.add('bg-blue-600');
+            }
+
             updateTotal();
 
             document.getElementById('catalog-view').classList.add('hidden');
@@ -195,27 +215,18 @@
                     })
                 });
 
-     if (res.ok) {
-                    // THÔNG TIN TÀI KHOẢN CỦA BẠN
+                if (res.ok) {
                     const STK = "134150399"; 
-                    const BANK = "ACB"; // Mã ngân hàng chuẩn (ACB, VCB, MB...)
-                    const TEMPLATE = "compact"; // Hoặc "qr_only", "print"
-                    
-                    // Tạo URL VietQR chuẩn
-                    // Cấu trúc: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>
+                    const BANK = "ACB"; 
+                    const TEMPLATE = "compact"; 
                     const qrUrl = `https://img.vietqr.io/image/${BANK}-${STK}-${TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
                     
-                    // Hiển thị giao diện thanh toán
                     document.getElementById('qr-img').src = qrUrl;
                     document.getElementById('p-content').innerText = orderId;
-                    
                     document.getElementById('checkout-view').classList.add('hidden');
                     document.getElementById('payment-view').classList.remove('hidden');
-                    
-                    // Bắt đầu kiểm tra trạng thái thanh toán
                     startChecking(orderId);
                 } else {
-                    // Hiển thị LỖI CHÍNH XÁC TỪ DATABASE ra màn hình
                     const errData = await res.json();
                     alert("LỖI CƠ SỞ DỮ LIỆU: " + errData.error);
                     btn.disabled = false;
