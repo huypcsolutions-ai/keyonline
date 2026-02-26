@@ -126,7 +126,7 @@
                     </div>
                     <div class="flex items-center justify-between border-t border-slate-50 mt-6 pt-6">
                         <span class="text-2xl font-black text-blue-600">${p.price.toLocaleString()}đ</span>
-                        <button onclick="openCheckout('${p.product_code}')" class="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold">Mua ngay</button>
+                        <button onclick="openCheckout('${p.code}')" class="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold">Mua ngay</button>
                     </div>
                 </div>
             `).join('');
@@ -135,7 +135,7 @@
 
         function openCheckout(productCode) {
             // Khớp đúng trường product_code từ Database
-            selectedProduct = allProducts.find(p => p.product_code === productCode);
+            selectedProduct = allProducts.find(p => p.code === productCode);
             document.getElementById('check-name').innerText = selectedProduct.name;
             document.getElementById('txt-total').innerText = selectedProduct.price.toLocaleString() + 'đ';
             
