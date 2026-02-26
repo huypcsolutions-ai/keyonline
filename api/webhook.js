@@ -1,76 +1,93 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export default async function handler(req, res) {
-    // SePay thường gửi Webhook qua method POST
+    // Chỉ chấp nhận POST từ SePay
     if (req.method !== 'POST') {
-        return res.status(405).json({ message: 'Chỉ chấp nhận phương thức POST' });
+        return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    const body = req.body;
+    const { transferAmount, transferContent, referenceCode, gateway } = body;
+
+    console.log("=== WEBHOOK NHẬN GIAO DỊCH MỚI ===");
+    console.log("Nội dung:", transferContent);
+    console.log("Số tiền:", transferAmount);
+
     try {
-        // Lấy dữ liệu SePay gửi về
-        const { transferAmount, transferContent } = req.body;
+        // 1. Dùng REGEX để lọc sạch mã đơn hàng (Loại bỏ "IB", "MB", rác...)
+        // Tìm chuỗi bắt đầu bằng ORD và theo sau là các chữ số
+        const orderMatch = transferContent.match(/ORD\d+/);
+        const pureOrderId = orderMatch ? orderMatch[0] : null;
 
-        // Nếu không có nội dung chuyển khoản thì bỏ qua
-        if (!transferContent) {
-            return res.status(200).json({ success: true, message: 'Bỏ qua giao dịch không có nội dung' });
+        if (!pureOrderId) {
+            console.error("❌ Lỗi: Không tìm thấy mã đơn hàng ORD trong nội dung chuyển khoản.");
+            return res.status(200).json({ success: false, message: "No OrderID found" });
         }
 
-        // 1. Tìm mã đơn hàng (ORD + 6 số) trong nội dung chuyển khoản
-        const orderMatch = transferContent.match(/ORD\d{6}/);
-        
-        if (!orderMatch) {
-            return res.status(200).json({ success: true, message: 'Không tìm thấy mã đơn hàng trong nội dung' });
-        }
+        console.log("👉 Mã đơn hàng lọc sạch:", pureOrderId);
 
-        const orderId = orderMatch[0]; // Lấy được mã, ví dụ: ORD123456
+        // 2. Lưu vào bảng transactions để làm bằng chứng đối soát (Dù đơn có khớp hay không)
+        const { error: tranError } = await supabase.from('transactions').insert([{
+            order_id: pureOrderId, // Lưu mã đã lọc sạch để web tìm thấy
+            content: transferContent,
+            transfer_amount: transferAmount,
+            transfer_type: gateway || 'Bank'
+        }]);
 
-        // 2. Tìm đơn hàng trong Database
+        if (tranError) console.error("⚠️ Lỗi lưu transactions:", tranError.message);
+
+        // 3. Tìm đơn hàng trong bảng orders
         const { data: order, error: fetchError } = await supabase
             .from('orders')
             .select('*')
-            .eq('order_id', orderId)
+            .eq('order_id', pureOrderId)
             .single();
 
         if (fetchError || !order) {
-            return res.status(200).json({ success: true, message: 'Đơn hàng không tồn tại' });
+            console.error(`❌ Lỗi: Không tìm thấy đơn hàng ${pureOrderId} trong bảng orders.`);
+            return res.status(200).json({ success: false, message: "Order not found in DB" });
         }
 
-        // Nếu đơn đã hoàn thành rồi thì bỏ qua để tránh gửi Key 2 lần
+        // 4. Nếu đơn đã hoàn thành rồi thì dừng lại
         if (order.status === 'completed') {
-            return res.status(200).json({ success: true, message: 'Đơn hàng đã được xử lý trước đó' });
+            console.log("✅ Đơn hàng này đã được xử lý trước đó rồi.");
+            return res.status(200).json({ success: true, message: "Already processed" });
         }
 
-        // 3. Kiểm tra số tiền khách chuyển có đủ không (Chấp nhận chuyển dư)
-        if (parseInt(transferAmount) >= parseInt(order.amount)) {
+        // 5. Kiểm tra số tiền (Cho phép sai số nếu cần, ở đây là khớp 100% hoặc dư)
+        if (Number(transferAmount) >= Number(order.amount)) {
             
-            // 4. Cập nhật trạng thái đơn hàng thành 'completed'
+            console.log(`💰 Tiền khớp! Đang cập nhật đơn ${pureOrderId}...`);
+
+            // Cập nhật trạng thái thành 'completed'
             const { error: updateError } = await supabase
                 .from('orders')
                 .update({ status: 'completed' })
-                .eq('order_id', orderId);
+                .eq('order_id', pureOrderId);
 
             if (updateError) {
-                console.error("Lỗi cập nhật đơn:", updateError);
-                return res.status(500).json({ error: 'Không thể cập nhật trạng thái đơn' });
+                console.error("❌ Lỗi khi cập nhật status orders:", updateError.message);
+                throw updateError;
             }
 
-            /* =========================================================
-               [QUAN TRỌNG] TẠI ĐÂY LÀ NƠI BẠN VIẾT LOGIC GỬI EMAIL
-               1. Lấy Key từ bảng 'keys' dựa theo order.product_code và order.quantity
-               2. Dùng Nodemailer/Resend để gửi Key vào order.customer_email
-               ========================================================= */
-
-            return res.status(200).json({ success: true, message: 'Thanh toán thành công, đã cập nhật đơn!' });
+            console.log("🚀 CẬP NHẬT THÀNH CÔNG! Web sẽ tự chuyển trang.");
             
+            /* Gợi ý: Bạn có thể thêm code gửi Email chứa Key tại đây 
+            */
+
+            return res.status(200).json({ success: true });
         } else {
-            // Khách chuyển thiếu tiền
-            return res.status(200).json({ success: true, message: 'Khách chuyển thiếu tiền' });
+            console.warn(`⚠️ Số tiền không đủ: Cần ${order.amount} nhưng nhận ${transferAmount}`);
+            return res.status(200).json({ success: false, message: "Amount mismatch" });
         }
 
     } catch (err) {
-        console.error("Lỗi Webhook:", err);
-        return res.status(500).json({ error: 'Lỗi server Webhook' });
+        console.error("🔥 CRITICAL ERROR Webhook:", err.message);
+        return res.status(500).json({ error: err.message });
     }
 }
