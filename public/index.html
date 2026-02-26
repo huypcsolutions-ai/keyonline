@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastKey - Hệ Thống Key Tự Động</title>
+    <title>FastKey - Mua Key Tự Động</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .hidden { display: none; }
-        .qr-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen pb-20">
 
     <nav class="bg-white border-b border-slate-200 py-4 mb-8">
         <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
@@ -21,7 +20,7 @@
                 <div class="bg-blue-600 p-1.5 rounded-lg text-white"><i data-lucide="zap" class="w-5 h-5"></i></div>
                 <span class="text-xl font-bold text-slate-800 tracking-tight">FASTKEY</span>
             </div>
-            <div class="text-sm text-slate-500">Giao hàng tự động 24/7</div>
+            <div class="text-sm text-slate-500 font-medium italic">Hệ thống giao hàng tự động 24/7</div>
         </div>
     </nav>
 
@@ -29,8 +28,30 @@
         
         <div id="step-product">
             <h2 class="text-2xl font-bold text-slate-800 mb-6">Chọn sản phẩm</h2>
-            <div id="product-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="col-span-full text-center py-10 text-slate-400">Đang tải danh sách sản phẩm...</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-500 transition-all group">
+                    <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <i data-lucide="monitor"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-1">Windows 11 Pro</h3>
+                    <p class="text-sm text-slate-500 mb-4">Key Retail chính hãng, vĩnh viễn.</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <span class="text-xl font-bold text-blue-600">150.000đ</span>
+                        <button onclick="selectProduct('WIN11', 'Windows 11 Pro', 150000)" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors">Chọn mua</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-500 transition-all group">
+                    <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 mb-4 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                        <i data-lucide="package"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-1">Office 2021 Plus</h3>
+                    <p class="text-sm text-slate-500 mb-4">Kích hoạt vĩnh viễn theo máy.</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xl font-bold text-blue-600">250.000đ</span>
+                        <button onclick="selectProduct('OFFICE21', 'Office 2021 Plus', 250000)" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors">Chọn mua</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -39,13 +60,13 @@
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại
             </button>
             <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-md">
-                <h2 class="text-xl font-bold mb-6">Thông tin nhận hàng</h2>
+                <h2 class="text-xl font-bold mb-6 text-slate-800">Thông tin nhận hàng</h2>
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Email nhận mã Key</label>
-                        <input type="email" id="customer-email" placeholder="vi-du@gmail.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="email" id="customer-email" placeholder="name@gmail.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
-                    <button onclick="confirmOrder()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all">Xác nhận đơn hàng</button>
+                    <button onclick="confirmOrder()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">Xác nhận thanh toán</button>
                 </div>
             </div>
         </div>
@@ -53,144 +74,111 @@
         <div id="step-payment" class="hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="shopping-bag" class="text-blue-600"></i> Chi tiết</h2>
-                    <div class="space-y-3">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="info" class="text-blue-600"></i> Chi tiết</h2>
+                    <div class="space-y-3 text-sm">
                         <div class="flex justify-between py-2 border-b border-slate-50">
                             <span class="text-slate-500">Sản phẩm</span>
                             <span id="p-name" class="font-bold text-slate-800">---</span>
                         </div>
                         <div class="flex justify-between py-2 border-b border-slate-50">
                             <span class="text-slate-500">Mã đơn hàng</span>
-                            <span id="p-id" class="font-mono font-bold text-blue-600 text-lg">---</span>
+                            <span id="p-id" class="font-mono font-bold text-blue-600">---</span>
                         </div>
-                        <div class="flex justify-between pt-4">
-                            <span class="text-lg font-bold">Tổng tiền</span>
-                            <span id="p-total" class="text-2xl font-bold text-blue-600">0đ</span>
+                        <div class="flex justify-between pt-2">
+                            <span class="text-lg font-bold">Tổng cộng</span>
+                            <span id="p-total" class="text-xl font-bold text-blue-600">0đ</span>
                         </div>
+                    </div>
+                    <div class="mt-6 bg-amber-50 p-4 rounded-xl border border-amber-100 text-xs text-amber-800">
+                        Lưu ý: Bạn phải chuyển khoản chính xác nội dung để hệ thống tự động giao Key.
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center">
                     <div id="payment-loading">
-                        <div class="qr-gradient inline-block p-3 rounded-2xl mb-4 shadow-lg">
-                            <img id="qr-img" src="" class="w-48 h-48 rounded-lg bg-white">
+                        <div class="inline-block p-4 bg-slate-50 rounded-2xl mb-4 border-2 border-blue-100">
+                            <img id="qr-img" src="" class="w-48 h-48 rounded-lg">
                         </div>
-                        <div class="flex items-center justify-center gap-2 text-slate-600 mb-6 font-medium">
+                        <div class="flex items-center justify-center gap-2 text-blue-600 mb-6 font-medium">
                             <div class="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                            Chờ thanh toán...
+                            Đang chờ thanh toán...
                         </div>
-                        <div class="text-left bg-slate-50 p-4 rounded-xl relative border border-slate-100">
-                            <p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Nội dung chuyển khoản chính xác</p>
-                            <div class="flex justify-between items-center">
-                                <span id="p-content" class="font-mono text-xl font-bold text-slate-800 tracking-widest">---</span>
-                                <i data-lucide="copy" class="w-4 h-4 text-blue-500 cursor-pointer" onclick="copyContent()"></i>
-                            </div>
+                        <div class="text-left bg-slate-50 p-4 rounded-xl relative">
+                            <p class="text-[10px] text-slate-400 uppercase font-bold mb-1">Nội dung chuyển khoản</p>
+                            <span id="p-content" class="font-mono text-lg font-bold text-slate-800 tracking-wider">---</span>
                         </div>
                     </div>
 
                     <div id="payment-success" class="hidden py-8">
-                        <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i data-lucide="check-circle" class="w-12 h-12"></i>
+                        <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="check-circle" class="w-10 h-10"></i>
                         </div>
-                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Thanh toán thành công!</h3>
-                        <p class="text-slate-500 mb-8">Kiểm tra Email để nhận Key của bạn.</p>
-                        <button onclick="location.reload()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold">TIẾP TỤC MUA SẮM</button>
+                        <h3 class="text-xl font-bold text-slate-800">Thanh toán thành công!</h3>
+                        <p class="text-sm text-slate-500 mb-6">Key đã được gửi vào Email của bạn.</p>
+                        <button onclick="location.reload()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Tiếp tục mua sắm</button>
                     </div>
                 </div>
             </div>
         </div>
+
     </main>
 
     <script>
         lucide.createIcons();
-        let selectedProductData = { code: '', name: '', price: 0 };
-        let checkStatusInterval = null;
-
-        // 1. Tải danh sách sản phẩm từ API
-        async function loadProducts() {
-            try {
-                const res = await fetch('/api/get-products');
-                const products = await res.json();
-                const container = document.getElementById('product-list');
-                container.innerHTML = '';
-
-                products.forEach(p => {
-                    container.innerHTML += `
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-500 transition-all">
-                            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
-                                <i data-lucide="package"></i>
-                            </div>
-                            <h3 class="text-lg font-bold text-slate-800 mb-1">${p.name}</h3>
-                            <p class="text-sm text-slate-500 mb-4">${p.description || 'Kích hoạt chính hãng.'}</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-xl font-bold text-blue-600">${Number(p.price).toLocaleString()}đ</span>
-                                <button onclick="selectProduct('${p.product_code}', '${p.name}', ${p.price})" 
-                                    class="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors">Mua ngay</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                lucide.createIcons();
-            } catch (e) {
-                document.getElementById('product-list').innerHTML = "Lỗi tải sản phẩm.";
-            }
-        }
+        let selected = { code: '', name: '', price: 0 };
+        let timer = null;
 
         function showStep(step) {
-            ['step-product', 'step-info', 'step-payment'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('step-product').classList.add('hidden');
+            document.getElementById('step-info').classList.add('hidden');
+            document.getElementById('step-payment').classList.add('hidden');
+            
             if(step === 1) document.getElementById('step-product').classList.remove('hidden');
             if(step === 2) document.getElementById('step-info').classList.remove('hidden');
             if(step === 3) document.getElementById('step-payment').classList.remove('hidden');
         }
 
         function selectProduct(code, name, price) {
-            selectedProductData = { code, name, price };
+            selected = { code, name, price };
             showStep(2);
         }
 
         async function confirmOrder() {
             const email = document.getElementById('customer-email').value;
-            if(!email.includes('@')) return alert("Vui lòng nhập Email hợp lệ");
+            if(!email.includes('@')) return alert("Vui lòng nhập Email chính xác");
 
             const orderId = "ORD" + Math.floor(100000 + Math.random() * 900000);
             
-            // Ở ĐÂY BẠN CẦN GỌI API /api/create-order ĐỂ LƯU VÀO SUPABASE
-            // const res = await fetch('/api/create-order', { method: 'POST', body: JSON.stringify({orderId, ...}) });
+            // Gửi dữ liệu về Server để tạo đơn trong Supabase
+            // Ở đây tôi giả định bạn dùng API tạo đơn đã viết trước đó
+            // await fetch('/api/create-order', { method: 'POST', body: JSON.stringify({...}) });
 
-            document.getElementById('p-name').innerText = selectedProductData.name;
+            // Hiển thị màn hình QR
+            document.getElementById('p-name').innerText = selected.name;
             document.getElementById('p-id').innerText = orderId;
-            document.getElementById('p-total').innerText = selectedProductData.price.toLocaleString() + "đ";
+            document.getElementById('p-total').innerText = selected.price.toLocaleString() + "đ";
             document.getElementById('p-content').innerText = orderId;
             
-            // Hiển thị QR (Thay thông tin ACB/Số tài khoản của bạn)
-            document.getElementById('qr-img').src = `https://qr.sepay.vn/img?acc=134150399&bank=ACB&amount=${selectedProductData.price}&des=${orderId}`;
+            const qrUrl = `https://qr.sepay.vn/img?acc=134150399&bank=ACB&amount=${selected.price}&des=${orderId}`;
+            document.getElementById('qr-img').src = qrUrl;
 
             showStep(3);
-            startCheckingStatus(orderId);
+            startChecking(orderId);
         }
 
-        function startCheckingStatus(orderId) {
-            if(checkStatusInterval) clearInterval(checkStatusInterval);
-            checkStatusInterval = setInterval(async () => {
-                try {
-                    const res = await fetch(`/api/check-status?orderId=${orderId}`);
-                    const data = await res.json();
-                    if(data.status === 'completed' || data.status === 'complete') {
-                        clearInterval(checkStatusInterval);
-                        document.getElementById('payment-loading').classList.add('hidden');
-                        document.getElementById('payment-success').classList.remove('hidden');
-                        lucide.createIcons();
-                    }
-                } catch (e) {}
+        function startChecking(orderId) {
+            if(timer) clearInterval(timer);
+            timer = setInterval(async () => {
+                const res = await fetch(`/api/check-status?orderId=${orderId}`);
+                const data = await res.json();
+                if(data.status === 'completed' || data.status === 'complete') {
+                    clearInterval(timer);
+                    document.getElementById('payment-loading').classList.add('hidden');
+                    document.getElementById('payment-success').classList.remove('hidden');
+                    lucide.createIcons();
+                }
             }, 3000);
         }
-
-        function copyContent() {
-            navigator.clipboard.writeText(document.getElementById('p-content').innerText);
-            alert("Đã copy nội dung chuyển khoản!");
-        }
-
-        window.onload = loadProducts;
     </script>
 </body>
 </html>
