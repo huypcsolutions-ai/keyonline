@@ -193,32 +193,56 @@ window.onload = async () => {
     }
 };
 
-        function renderCatalog() {
-            const list = document.getElementById('product-list');
-            list.innerHTML = allProducts.map(p => {
-                // Kiểm tra nếu có image_url thì hiển thị ảnh, ngược lại hiện icon zap
-                const mediaHtml = p.image_url 
-                    ? `<img src="${p.image_url}" alt="${p.name}" class="product-img">`
-                    : `<i data-lucide="zap" class="w-8 h-8 text-blue-600"></i>`;
+function renderCatalog() {
+    const list = document.getElementById('product-list');
+    list.innerHTML = allProducts.map(p => {
+        const isOutOfStock = p.stock <= 0;
+        
+        // Nhãn trạng thái kho hàng
+        const stockBadge = isOutOfStock 
+            ? `<span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Hết hàng</span>`
+            : `<span class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Còn ${p.stock} sản phẩm</span>`;
 
-                return `
-                    <div class="product-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between">
-                        <div>
-                            <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6 overflow-hidden">
-                                ${mediaHtml}
-                            </div>
-                            <h3 class="text-xl font-bold text-slate-800">${p.name}</h3>
-                            <p class="text-slate-400 text-sm mt-2 line-clamp-2 font-medium">${p.description || 'Giao hàng 24/7'}</p>
-                        </div>
-                        <div class="flex items-center justify-between border-t border-slate-50 mt-6 pt-6">
-                            <span class="text-2xl font-black text-blue-600">${Number(p.price).toLocaleString()}đ</span>
-                            <button onclick="openCheckout('${p.code}')" class="bg-slate-900 text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-lg hover:bg-blue-600 transition">Mua ngay</button>
-                        </div>
+        const mediaHtml = p.image_url 
+            ? `<img src="${p.image_url}" alt="${p.name}" class="product-img">`
+            : `<i data-lucide="zap" class="w-8 h-8 text-blue-600"></i>`;
+
+        // Style cho nút bấm dựa trên tồn kho
+        const btnClass = isOutOfStock
+            ? `bg-slate-200 text-slate-400 cursor-not-allowed`
+            : `bg-slate-900 text-white hover:bg-blue-600 shadow-lg`;
+        
+        const btnText = isOutOfStock ? "Hết hàng" : "Mua ngay";
+        const btnAction = isOutOfStock ? "" : `onclick="openCheckout('${p.code}')"`;
+
+        return `
+            <div class="product-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute top-6 right-6">
+                    ${stockBadge}
+                </div>
+
+                <div>
+                    <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6 overflow-hidden">
+                        ${mediaHtml}
                     </div>
-                `;
-            }).join('');
-            lucide.createIcons();
-        }
+                    <h3 class="text-xl font-bold text-slate-800">${p.name}</h3>
+                    <p class="text-slate-400 text-sm mt-2 line-clamp-2 font-medium">${p.description || 'Giao hàng tự động 24/7'}</p>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-slate-50 mt-6 pt-6">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Giá bán</span>
+                        <span class="text-2xl font-black text-blue-600">${Number(p.price).toLocaleString()}đ</span>
+                    </div>
+                    <button ${btnAction} class="${btnClass} px-6 py-3 rounded-2xl text-sm font-bold transition-all">
+                        ${btnText}
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    lucide.createIcons();
+}
 
         function openCheckout(code) {
             selectedProduct = allProducts.find(p => p.code === code);
