@@ -102,6 +102,15 @@
                         <p id="p-content" class="text-2xl font-mono font-bold tracking-widest"></p>
                     </div>
                     <div class="flex items-center justify-center space-x-3 text-blue-600 bg-blue-50 py-3 rounded-2xl">
+
+                 // thêm nút mở app
+            <div id="mobile-pay-btn" class="hidden mt-4">
+                    <button id="btn-open-bank"
+                    class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg hover:bg-emerald-700 transition">
+                        MỞ APP NGÂN HÀNG
+                </button></div>
+
+                        
                         <div class="spinner !w-4 !h-4"></div>
                         <span class="text-xs font-bold uppercase tracking-widest italic">Chờ thanh toán...</span>
                     </div>
@@ -220,6 +229,28 @@
                     const BANK = "ACB"; 
                     const TEMPLATE = "compact2"; 
                     const qrUrl = `https://img.vietqr.io/image/${BANK}-${STK}-${TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
+
+   // thêm deeplink nút mở app trên mobile
+// Detect mobile
+const isMobile = /iPhone|Android/i.test(navigator.userAgent);
+
+// Tạo payment link VietQR (link thay vì ảnh)
+const paymentLink = `https://api.vietqr.io/v2/pay?bank=${BANK}&accountNumber=${STK}&amount=${total}&addInfo=${orderId}`;
+
+if (isMobile) {
+    const btnOpen = document.getElementById('mobile-pay-btn');
+    const btnBank = document.getElementById('btn-open-bank');
+
+    btnOpen.classList.remove('hidden');
+    btnBank.onclick = () => {
+        window.location.href = paymentLink;
+    };
+}
+
+
+
+                    
+                    
                     
                     document.getElementById('qr-img').src = qrUrl;
                     document.getElementById('p-content').innerText = orderId;
