@@ -251,20 +251,19 @@
 //const paymentLink = `https://api.vietqr.io/v2/pay?bank=${BANK}&accountNumber=${STK}&amount=${total}&addInfo=${orderId}`;
 
 
+// MOBILE DEEPLINK
 const isMobile = /iPhone|Android/i.test(navigator.userAgent);
 
-// Mã ngân hàng phải lowercase theo chuẩn VietQR
-const bankApp = BANK.toLowerCase();
-
-// Deeplink chuẩn VietQR
-const paymentLink =
-  "https://dl.vietqr.io/pay" +
-  "?app=" + bankApp +
-  "&ba=" + STK +
-  "&am=" + total +
-  "&tn=" + encodeURIComponent(orderId);
-
 if (isMobile) {
+    const bankApp = BANK.toLowerCase();
+
+    const paymentLink =
+        "https://dl.vietqr.io/pay" +
+        "?app=" + bankApp +
+        "&ba=" + STK +
+        "&am=" + total +
+        "&tn=" + encodeURIComponent(orderId);
+
     const btnOpen = document.getElementById('mobile-pay-btn');
     const btnBank = document.getElementById('btn-open-bank');
 
@@ -274,7 +273,6 @@ if (isMobile) {
         window.location.href = paymentLink;
     };
 }
-
 
                     
                     
