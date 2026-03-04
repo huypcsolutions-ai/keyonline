@@ -280,6 +280,15 @@ function renderCatalog() {
             const qty = parseInt(document.getElementById('qty').value) || 1;
             const total = parseInt(document.getElementById('txt-total').innerText.replace(/\D/g, ''));
 
+            if (qty > selectedProduct.stock) {
+        alert(`Rất tiếc! Số lượng tồn sẵn kho không đủ Vui lòng giảm số lượng.`);
+        //alert(`Rất tiếc! Hiện tại trong kho chỉ còn ${selectedProduct.stock} sản phẩm. Vui lòng giảm số lượng.`);
+        document.getElementById('qty').value = selectedProduct.stock; // Tự đưa về mức tối đa cho khách
+        updateTotal();
+        return; 
+    }
+            
+
             if (!email.includes('@')) return alert("Vui lòng nhập Email chính xác!");
 
             const orderId = "ORD" + Math.floor(100000 + Math.random() * 899999);
