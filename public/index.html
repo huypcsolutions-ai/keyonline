@@ -109,12 +109,24 @@
 </div>
 
 <!-- NÚT MỞ APP MOBILE -->
-<div id="mobile-pay-btn" class="hidden mt-4">
+ !-- CHỌN NGÂN HÀNG -->
+<div class="mt-4">
+    <select id="bank-select"
+        class="w-full px-4 py-3 rounded-2xl bg-slate-100 font-bold text-slate-700 outline-none">
+        <option value="acb">ACB</option>
+        <option value="vcb">Vietcombank</option>
+        <option value="ctg">VietinBank</option>
+        <option value="bidv">BIDV</option>
+        <option value="mb">MBBank</option>
+    </select>
+</div>
+<!-- NÚT MỞ APP -->
+<div id="mobile-pay-btn" class="mt-4">
     <button id="btn-open-bank"
         class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg hover:bg-emerald-700 transition">
         MỞ APP NGÂN HÀNG
     </button>
-</div>                    
+</div>                  
 
 
 
@@ -133,6 +145,42 @@
     </div>
 
     <script>
+
+
+        const BANK_CONFIG = {
+  acb: {
+    name: "ACB",
+    bin: "970416",
+    scheme: "acb://",
+    web: "https://online.acb.com.vn"
+  },
+  vcb: {
+    name: "Vietcombank",
+    bin: "970436",
+    scheme: "vietcombank://",
+    web: "https://vcbdigibank.vietcombank.com.vn"
+  },
+  ctg: {
+    name: "VietinBank",
+    bin: "970415",
+    scheme: "vietinbank://",
+    web: "https://ebanking.vietinbank.vn"
+  },
+  bidv: {
+    name: "BIDV",
+    bin: "970418",
+    scheme: "bidv://",
+    web: "https://smartbanking.bidv.com.vn"
+  },
+  mb: {
+    name: "MBBank",
+    bin: "970422",
+    scheme: "mbbank://",
+    web: "https://online.mbbank.com.vn"
+  }
+};
+
+        
         let allProducts = [], selectedProduct = null;
 
         window.onload = async () => {
@@ -255,7 +303,6 @@ if (isMobile) {
     const paymentLink =
         "https://dl.vietqr.io/pay" +
         "?acqId=970416" +
-       // "?app=" + BANK.toLowerCase() +
         "&ba=" + STK +
         "&am=" + total +
         "&tn=" + encodeURIComponent(orderId)+
@@ -264,7 +311,6 @@ if (isMobile) {
     btnBank.onclick = function () {
         window.location.href = paymentLink;
 
-        // fallback sau 1.5s nếu app không mở
         setTimeout(() => {
             window.location.href = qrUrl;
         }, 2000);
