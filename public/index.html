@@ -291,32 +291,38 @@
 
 
 // MOBILE DEEPLINK // ===== MOBILE HANDLING =====
-const isMobile = /iPhone|Android/i.test(navigator.userAgent);
-const btnOpen = document.getElementById('mobile-pay-btn');
-const btnBank = document.getElementById('btn-open-bank');
 
-btnOpen.classList.add('hidden');
+                    const btnBank = document.getElementById('btn-open-bank');
 
-if (isMobile) {
-    btnOpen.classList.remove('hidden');
+btnBank.onclick = function () {
 
-    const paymentLink =
-        "https://dl.vietqr.io/pay" +
-        "?acqId=970416" +
-        "&ba=" + STK +
-        "&am=" + total +
-        "&tn=" + encodeURIComponent(orderId)+
-        "&url=https://payos.vn";
+    const selectedBank = document.getElementById('bank-select').value;
+    const bank = BANK_CONFIG[selectedBank];
 
-    btnBank.onclick = function () {
-        window.location.href = paymentLink;
+    const isMobile = /iPhone|Android/i.test(navigator.userAgent);
 
+    if (isMobile) {
+
+        // Thử mở app bằng scheme
+        window.location.href = bank.scheme;
+
+        // Sau 2s nếu không mở được → cuộn xuống QR
         setTimeout(() => {
-            window.location.href = qrUrl;
+            if (!document.hidden) {
+                document.getElementById("qr-img").scrollIntoView({
+                    behavior: "smooth"
+                });
+            }
         }, 2000);
-    };
-}
-                    
+
+    } else {
+
+        // Desktop → mở Internet Banking
+        window.open(bank.web, "_blank");
+
+    }
+};
+             
                     
                     
                     
