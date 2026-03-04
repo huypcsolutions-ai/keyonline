@@ -197,6 +197,12 @@ function renderCatalog() {
     const list = document.getElementById('product-list');
     list.innerHTML = allProducts.map(p => {
         const isOutOfStock = p.stock <= 0;
+
+// Định dạng số lượng đã bán (Ví dụ: 1200 -> 1,2k)
+        const soldFormatted = p.sold >= 1000 
+            ? (p.sold / 1000).toFixed(1).replace('.0', '') + 'k' 
+            : p.sold;
+        
         
         // Nhãn trạng thái kho hàng
         const stockBadge = isOutOfStock 
@@ -238,6 +244,17 @@ function renderCatalog() {
                     <button ${btnAction} class="${btnClass} px-6 py-3 rounded-2xl text-sm font-bold transition-all">
                         ${btnText}
                     </button>
+
+<div class="flex items-center space-x-2 mb-2">
+                        <div class="flex items-center text-amber-400">
+                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                            <span class="text-xs font-bold ml-1 text-slate-700">4.9</span>
+                        </div>
+                        <span class="text-slate-300">|</span>
+                        <span class="text-[11px] text-slate-500 font-medium">Đã bán ${soldFormatted}</span>
+                    </div>
+
+                    
                 </div>
             </div>
         `;
