@@ -153,6 +153,12 @@ const BANK_CONFIG = {
     bidv: { name: "BIDV", id: "bidv", web: "https://smartbanking.bidv.com.vn" },
     mb: { name: "MBBank", id: "mb", web: "https://online.mbbank.com.vn" }
 };
+
+const SHOP_CONFIG = {
+    STK: "134150399",
+    BANK_ID: "acb", // Dùng cho VietQR link
+    QR_TEMPLATE: "compact2"
+};
         
         let allProducts = [], selectedProduct = null;
 
@@ -250,10 +256,8 @@ const BANK_CONFIG = {
                 });
 
                 if (res.ok) {
-                    const STK = "134150399"; 
-                    const BANK = "ACB"; 
-                    const TEMPLATE = "compact2"; 
-                    const qrUrl = `https://img.vietqr.io/image/${BANK}-${STK}-${TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
+//const STK = "134150399"; const BANK = "ACB"; const TEMPLATE = "compact2"; const qrUrl = `https://img.vietqr.io/image/${BANK}-${STK}-${TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
+                    const qrUrl = `https://img.vietqr.io/image/${SHOP_CONFIG.BANK_ID}-${SHOP_CONFIG.STK}-${SHOP_CONFIG.QR_TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
 
 
 
