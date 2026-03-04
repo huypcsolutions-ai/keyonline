@@ -242,30 +242,32 @@
 //const paymentLink = `https://api.vietqr.io/v2/pay?bank=${BANK}&accountNumber=${STK}&amount=${total}&addInfo=${orderId}`;
 
 
-// MOBILE DEEPLINK
+// MOBILE DEEPLINK // ===== MOBILE HANDLING =====
 const isMobile = /iPhone|Android/i.test(navigator.userAgent);
+const btnOpen = document.getElementById('mobile-pay-btn');
+const btnBank = document.getElementById('btn-open-bank');
+
+btnOpen.classList.add('hidden');
 
 if (isMobile) {
-    const bankApp = BANK.toLowerCase();
+    btnOpen.classList.remove('hidden');
 
     const paymentLink =
         "https://dl.vietqr.io/pay" +
-        "?app=" + bankApp +
+        "?app=" + BANK.toLowerCase() +
         "&ba=" + STK +
         "&am=" + total +
-        "&tn=" + encodeURIComponent(orderId)+
-        "&url=https://payos.vn";
-
-    const btnOpen = document.getElementById('mobile-pay-btn');
-    const btnBank = document.getElementById('btn-open-bank');
-
-    btnOpen.classList.remove('hidden');
+        "&tn=" + encodeURIComponent(orderId);
 
     btnBank.onclick = function () {
         window.location.href = paymentLink;
+
+        // fallback sau 1.5s nếu app không mở
+        setTimeout(() => {
+            window.location.href = qrUrl;
+        }, 1500);
     };
 }
-
                     
                     
                     
