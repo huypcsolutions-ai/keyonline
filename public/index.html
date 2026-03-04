@@ -175,16 +175,23 @@ const SHOP_CONFIG = {
         
         let allProducts = [], selectedProduct = null;
 
-        window.onload = async () => {
-            lucide.createIcons();
-            try {
-                const res = await fetch('/api/get-products');
-                allProducts = await res.json();
-                renderCatalog();
-            } catch (e) {
-                document.getElementById('product-list').innerHTML = `<p class="col-span-full text-center text-red-500">Lỗi kết nối máy chủ!</p>`;
-            }
-        };
+window.onload = async () => {
+    // 1. Khởi tạo Icon
+    lucide.createIcons();
+    
+    // 2. Khôi phục ngân hàng đã chọn từ lần trước
+    loadLastBank();
+    
+    // 3. Tải sản phẩm từ Server
+    try {
+        const res = await fetch('/api/get-products');
+        allProducts = await res.json();
+        renderCatalog();
+    } catch (e) {
+        document.getElementById('product-list').innerHTML = 
+            `<p class="col-span-full text-center text-red-500">Lỗi kết nối máy chủ!</p>`;
+    }
+};
 
         function renderCatalog() {
             const list = document.getElementById('product-list');
@@ -269,7 +276,7 @@ const SHOP_CONFIG = {
                 });
 
                 if (res.ok) {
-//const STK = "134150399"; const BANK = "ACB"; const TEMPLATE = "compact2"; const qrUrl = `https://img.vietqr.io/image/${BANK}-${STK}-${TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
+
                     const qrUrl = `https://img.vietqr.io/image/${SHOP_CONFIG.BANK_ID}-${SHOP_CONFIG.STK}-${SHOP_CONFIG.QR_TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
 
 
@@ -373,19 +380,7 @@ function loadLastBank() {
     }
 }
 
-// 3. Gọi hàm load khi khởi tạo trang (Cập nhật trong window.onload hiện tại của bạn)
-window.onload = async () => {
-    lucide.createIcons();
-    loadLastBank(); // <--- Thêm dòng này ở đây
-    
-    try {
-        const res = await fetch('/api/get-products');
-        allProducts = await res.json();
-        renderCatalog();
-    } catch (e) {
-        document.getElementById('product-list').innerHTML = `<p class="col-span-full text-center text-red-500">Lỗi kết nối máy chủ!</p>`;
-    }
-};
+
     </script>
 </body>
 </html>
