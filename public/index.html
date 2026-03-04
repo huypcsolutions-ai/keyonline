@@ -298,15 +298,21 @@ btnBank.onclick = function () {
 
     const selectedBank = document.getElementById('bank-select').value;
     const bank = BANK_CONFIG[selectedBank];
-
     const isMobile = /iPhone|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
 
-        // Thử mở app bằng scheme
-        window.location.href = bank.scheme;
+        // Deep link VietQR chuẩn
+        const deepLink =
+            `https://dl.vietqr.io/pay?` +
+            `app=${selectedBank}` +
+            `&ba=${STK}` +
+            `&am=${total}` +
+            `&tn=${orderId}`;
 
-        // Sau 2s nếu không mở được → cuộn xuống QR
+        window.location.href = deepLink;
+
+        // Fallback sau 2s nếu không mở được app
         setTimeout(() => {
             if (!document.hidden) {
                 document.getElementById("qr-img").scrollIntoView({
@@ -317,12 +323,10 @@ btnBank.onclick = function () {
 
     } else {
 
-        // Desktop → mở Internet Banking
         window.open(bank.web, "_blank");
 
     }
-};
-             
+};   
                     
                     
                     
