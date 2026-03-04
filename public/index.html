@@ -148,10 +148,10 @@
 
 const BANK_CONFIG = {
     acb: { name: "ACB", id: "acb", web: "https://online.acb.com.vn" },
-    vcb: { name: "Vietcombank", id: "vietcombank", web: "https://vcbdigibank.vietcombank.com.vn" },
+    vcb: { name: "Vietcombank", id: "vcb", web: "https://vcbdigibank.vietcombank.com.vn" },
     ctg: { name: "VietinBank", id: "vietinbank", web: "https://ebanking.vietinbank.vn" },
     bidv: { name: "BIDV", id: "bidv", web: "https://smartbanking.bidv.com.vn" },
-    mb: { name: "MBBank", id: "mbbank", web: "https://online.mbbank.com.vn" }
+    mb: { name: "MBBank", id: "mb", web: "https://online.mbbank.com.vn" }
 };
         
         let allProducts = [], selectedProduct = null;
@@ -266,27 +266,29 @@ const BANK_CONFIG = {
 // MOBILE DEEPLINK // ===== MOBILE HANDLING =====
 
                     const btnBank = document.getElementById('btn-open-bank');
-// Thay thế đoạn code xử lý sự kiện click của btnBank cũ:
+
 btnBank.onclick = function () {
     const selectedBankKey = document.getElementById('bank-select').value;
     const bank = BANK_CONFIG[selectedBankKey];
     
-    // Cấu hình tài khoản nhận tiền của bạn
+    // Thông tin nhận tiền của bạn (Cố định hoặc lấy từ biến hệ thống)
     const MY_STK = "134150399";
-    const MY_BANK = "acb"; // Mã ngân hàng của bạn
+    const MY_BANK_ID = "acb"; // Mã ngân hàng nhận tiền của bạn theo chuẩn VietQR
 
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
-        /** * DEEPLINK MOBILE
-         * Cấu trúc: https://dl.vietqr.io/pay?app=[MÃ_APP]&ba=[STK]@[MÃ_NH]&am=[SỐ_TIỀN]&tn=[NỘI_DUNG]
-         */
-        const deepLink = `https://dl.vietqr.io/pay?app=${bank.id}&ba=${MY_STK}@${MY_BANK}&am=${total}&tn=${encodeURIComponent(orderId)}`;
+        // TẠO DEEPLINK THEO CHUẨN TÀI LIỆU VIETQR.IO
+        // Tham số: app (id ngân hàng khách chọn), ba (stk@bank của bạn), am (số tiền), tn (nội dung)
+        const deepLink = `https://dl.vietqr.io/pay` + 
+                         `?app=${bank.id}` + 
+                         `&ba=${MY_STK}@${MY_BANK_ID}` + 
+                         `&am=${total}` + 
+                         `&tn=${encodeURIComponent(orderId)}`;
         
         window.location.href = deepLink;
 
-        // Fallback: Nếu sau 2.5s không thấy chuyển biến (có thể do khách chưa cài app đó), 
-        // cuộn tới QR để khách chụp màn hình/quét thủ công.
+        // Fallback: Nếu không mở được app sau 2.5 giây, cuộn xuống ảnh QR
         setTimeout(() => {
             if (!document.hidden) {
                 document.getElementById("qr-img").scrollIntoView({ behavior: "smooth" });
@@ -294,13 +296,14 @@ btnBank.onclick = function () {
         }, 2500);
 
     } else {
-        /**
-         * DESKTOP
-         * Mở trang Web Internet Banking tương ứng
-         */
-        window.open(bank.web, "_blank");
+        // TRÊN DESKTOP: Mở link Internet Banking khách chọn
+        if (bank && bank.web) {
+            window.open(bank.web, "_blank");
+        } else {
+            alert("Vui lòng thanh toán bằng QRCODE hoặc internet banking của bạn...");
+        }
     }
-};     
+};
                     
                     
                     document.getElementById('qr-img').src = qrUrl;
