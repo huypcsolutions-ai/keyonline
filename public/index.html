@@ -146,40 +146,13 @@
 
     <script>
 
-
-        const BANK_CONFIG = {
-  acb: {
-    name: "ACB",
-    bin: "970416",
-    scheme: "acb://",
-    web: "https://online.acb.com.vn"
-  },
-  vcb: {
-    name: "Vietcombank",
-    bin: "970436",
-    scheme: "vietcombank://",
-    web: "https://vcbdigibank.vietcombank.com.vn"
-  },
-  ctg: {
-    name: "VietinBank",
-    bin: "970415",
-    scheme: "vietinbank://",
-    web: "https://ebanking.vietinbank.vn"
-  },
-  bidv: {
-    name: "BIDV",
-    bin: "970418",
-    scheme: "bidv://",
-    web: "https://smartbanking.bidv.com.vn"
-  },
-  mb: {
-    name: "MBBank",
-    bin: "970422",
-    scheme: "mbbank://",
-    web: "https://online.mbbank.com.vn"
-  }
+const BANK_CONFIG = {
+    acb: { name: "ACB", id: "acb", web: "https://online.acb.com.vn" },
+    vcb: { name: "Vietcombank", id: "vietcombank", web: "https://vcbdigibank.vietcombank.com.vn" },
+    ctg: { name: "VietinBank", id: "vietinbank", web: "https://ebanking.vietinbank.vn" },
+    bidv: { name: "BIDV", id: "bidv", web: "https://smartbanking.bidv.com.vn" },
+    mb: { name: "MBBank", id: "mbbank", web: "https://online.mbbank.com.vn" }
 };
-
         
         let allProducts = [], selectedProduct = null;
 
@@ -293,42 +266,41 @@
 // MOBILE DEEPLINK // ===== MOBILE HANDLING =====
 
                     const btnBank = document.getElementById('btn-open-bank');
-
+// Thay thế đoạn code xử lý sự kiện click của btnBank cũ:
 btnBank.onclick = function () {
+    const selectedBankKey = document.getElementById('bank-select').value;
+    const bank = BANK_CONFIG[selectedBankKey];
+    
+    // Cấu hình tài khoản nhận tiền của bạn
+    const MY_STK = "134150399";
+    const MY_BANK = "acb"; // Mã ngân hàng của bạn
 
-    const selectedBank = document.getElementById('bank-select').value;
-    const bank = BANK_CONFIG[selectedBank];
-
-    const isMobile = /iPhone|Android/i.test(navigator.userAgent);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
-
-        const deepLink =
-            "https://dl.vietqr.io/pay" +
-            "?app=" + selectedBank +
-            "&ba=134150399@acb" +        // STK của anh @ ngân hàng nhận tiền
-            "&am=" + total +
-            "&tn=" + encodeURIComponent(orderId) +
-            "&url=https://payos.vn";
-
+        /** * DEEPLINK MOBILE
+         * Cấu trúc: https://dl.vietqr.io/pay?app=[MÃ_APP]&ba=[STK]@[MÃ_NH]&am=[SỐ_TIỀN]&tn=[NỘI_DUNG]
+         */
+        const deepLink = `https://dl.vietqr.io/pay?app=${bank.id}&ba=${MY_STK}@${MY_BANK}&am=${total}&tn=${encodeURIComponent(orderId)}`;
+        
         window.location.href = deepLink;
 
-        // fallback 2s nếu app không mở
+        // Fallback: Nếu sau 2.5s không thấy chuyển biến (có thể do khách chưa cài app đó), 
+        // cuộn tới QR để khách chụp màn hình/quét thủ công.
         setTimeout(() => {
             if (!document.hidden) {
-                document.getElementById("qr-img").scrollIntoView({
-                    behavior: "smooth"
-                });
+                document.getElementById("qr-img").scrollIntoView({ behavior: "smooth" });
             }
-        }, 2000);
+        }, 2500);
 
     } else {
-
-        // Desktop → mở Internet Banking
+        /**
+         * DESKTOP
+         * Mở trang Web Internet Banking tương ứng
+         */
         window.open(bank.web, "_blank");
-
     }
-};           
+};     
                     
                     
                     document.getElementById('qr-img').src = qrUrl;
