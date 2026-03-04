@@ -257,7 +257,8 @@ if (isMobile) {
         "?app=" + BANK.toLowerCase() +
         "&ba=" + STK +
         "&am=" + total +
-        "&tn=" + encodeURIComponent(orderId);
+        "&tn=" + encodeURIComponent(orderId)+
+        "&url=https://payos.vn";
 
     btnBank.onclick = function () {
         window.location.href = paymentLink;
