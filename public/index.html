@@ -298,21 +298,22 @@ btnBank.onclick = function () {
 
     const selectedBank = document.getElementById('bank-select').value;
     const bank = BANK_CONFIG[selectedBank];
+
     const isMobile = /iPhone|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
 
-        // Deep link VietQR chuẩn
         const deepLink =
-            `https://dl.vietqr.io/pay?` +
-            `app=${selectedBank}` +
-            `&ba=${STK}` +
-            `&am=${total}` +
-            `&tn=${orderId}`;
+            "https://dl.vietqr.io/pay" +
+            "?app=" + selectedBank +
+            "&ba=134150399@acb" +        // STK của anh @ ngân hàng nhận tiền
+            "&am=" + total +
+            "&tn=" + encodeURIComponent(orderId) +
+            "&url=https://payos.vn";
 
         window.location.href = deepLink;
 
-        // Fallback sau 2s nếu không mở được app
+        // fallback 2s nếu app không mở
         setTimeout(() => {
             if (!document.hidden) {
                 document.getElementById("qr-img").scrollIntoView({
@@ -323,11 +324,11 @@ btnBank.onclick = function () {
 
     } else {
 
+        // Desktop → mở Internet Banking
         window.open(bank.web, "_blank");
 
     }
-};   
-                    
+};           
                     
                     
                     document.getElementById('qr-img').src = qrUrl;
