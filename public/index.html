@@ -348,67 +348,63 @@ if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                     })
                 });
 
+
+                /*
                 if (res.ok) {
-
-                    const qrUrl = `https://img.vietqr.io/image/${SHOP_CONFIG.BANK_ID}-${SHOP_CONFIG.STK}-${SHOP_CONFIG.QR_TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
-
-
-
-
-
-// Tạo payment link VietQR (link thay vì ảnh)
-//const paymentLink = `https://api.vietqr.io/v2/pay?bank=${BANK}&accountNumber=${STK}&amount=${total}&addInfo=${orderId}`;
-
-
+                    
+   const qrUrl = `https://img.vietqr.io/image/${SHOP_CONFIG.BANK_ID}-${SHOP_CONFIG.STK}-${SHOP_CONFIG.QR_TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
 // MOBILE DEEPLINK // ===== MOBILE HANDLING =====
-
-                    const btnBank = document.getElementById('btn-open-bank');
-
+const btnBank = document.getElementById('btn-open-bank');
 btnBank.onclick = function () {
     const selectedBankKey = document.getElementById('bank-select').value;
     const bank = BANK_CONFIG[selectedBankKey];
-    
-    // Thông tin nhận tiền của bạn (Cố định hoặc lấy từ biến hệ thống)
-    const MY_STK = "134150399";
-    const MY_BANK_ID = "acb"; // Mã ngân hàng nhận tiền của bạn theo chuẩn VietQR
-
+     // Thông tin nhận tiền của bạn (Cố định hoặc lấy từ biến hệ thống)
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-        // TẠO DEEPLINK THEO CHUẨN TÀI LIỆU VIETQR.IO
-        // Tham số: app (id ngân hàng khách chọn), ba (stk@bank của bạn), am (số tiền), tn (nội dung)
-        const deepLink = `https://dl.vietqr.io/pay` + 
-                         `?app=${bank.id}` + 
-                         `&ba=${MY_STK}@${MY_BANK_ID}` + 
-                         `&am=${total}` + 
-                         `&tn=${encodeURIComponent(orderId)}` +  //+"https://keyonline.vercel.app";
-                        "&url=https://payos.vn";
-        
+    if (isMobile) {   // TẠO DEEPLINK THEO CHUẨN TÀI LIỆU VIETQR.IO Tham số: app (id ngân hàng khách chọn), ba (stk@bank của bạn), am (số tiền), tn (nội dung)
+        const deepLink = `https://dl.vietqr.io/pay` + `?app=${bank.id}` +  `&ba=${SHOP_CONFIG.STK}}@${SHOP_CONFIG.BANK_ID}` + `&am=${total}` + 
+                         `&tn=${encodeURIComponent(orderId)}` +     "&url=https://payos.vn";    
         window.location.href = deepLink;
+        setTimeout(() => {  // Fallback: Nếu không mở được app sau 2.5 giây, cuộn xuống ảnh QR
+            if (!document.hidden) { document.getElementById("qr-img").scrollIntoView({ behavior: "smooth" }); } }, 2500);
+    } else {        // TRÊN DESKTOP: Mở link Internet Banking khách chọn
+        if (bank && bank.web) { window.open(bank.web, "_blank");
+        } else {  alert("Vui lòng thanh toán bằng QRCODE hoặc internet banking của bạn...");   } }};
 
-        // Fallback: Nếu không mở được app sau 2.5 giây, cuộn xuống ảnh QR
-        setTimeout(() => {
-            if (!document.hidden) {
-                document.getElementById("qr-img").scrollIntoView({ behavior: "smooth" });
-            }
-        }, 2500);
-
-    } else {
-        // TRÊN DESKTOP: Mở link Internet Banking khách chọn
-        if (bank && bank.web) {
-            window.open(bank.web, "_blank");
-        } else {
-            alert("Vui lòng thanh toán bằng QRCODE hoặc internet banking của bạn...");
-        }
-    }
-};
-                    
-                    
-                    document.getElementById('qr-img').src = qrUrl;
+                            document.getElementById('qr-img').src = qrUrl;
                     document.getElementById('p-content').innerText = orderId;
                     document.getElementById('checkout-view').classList.add('hidden');
                     document.getElementById('payment-view').classList.remove('hidden');
                     startChecking(orderId);
+*/
+if (res.ok) {    // 1. Hiển thị ảnh QR TỨC THÌ (Dùng link VietQR.io như cũ nhưng chuẩn hóa theo SePay)
+    const qrUrl = `https://img.vietqr.io/image/${SHOP_CONFIG.BANK_ID}-${SHOP_CONFIG.STK}-${SHOP_CONFIG.QR_TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
+    document.getElementById('qr-img').src = qrUrl;
+    document.getElementById('p-content').innerText = orderId;
+
+    // 2. Cấu hình nút mở App bằng SEPAY CHECKOUT (Tự động & Đẹp hơn)    // Bạn cần sửa API Backend để trả về link này (xem Bước 2 bên dưới)
+    const btnBank = document.getElementById('btn-open-bank');
+    btnBank.innerText = "MỞ APP NGÂN HÀNG THANH TOÁN";
+    btnBank.classList.replace('bg-emerald-600', 'bg-blue-600'); // Đổi màu cho chuyên nghiệp
+
+    // Lấy link checkout từ Backend trả về
+    const resData = await res.json(); 
+    btnBank.onclick = function () {
+        if (resData.sepay_checkout_url) {
+            window.location.href = resData.sepay_checkout_url;
+        } else {
+            // Fallback nếu không lấy được link
+            alert("Vui lòng quét mã QR trên màn hình.");
+        }
+    };
+
+    // Chuyển View
+    document.getElementById('checkout-view').classList.add('hidden');
+    document.getElementById('payment-view').classList.remove('hidden');
+    startChecking(orderId);
+}                    
+                    
+                    
+
                 } else {
                     const errData = await res.json();
                     alert("LỖI CƠ SỞ DỮ LIỆU: " + errData.error);
