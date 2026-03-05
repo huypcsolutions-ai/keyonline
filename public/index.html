@@ -398,9 +398,7 @@ btnBank.onclick = function () {
     const selectedBankKey = document.getElementById('bank-select').value;
     const bank = BANK_CONFIG[selectedBankKey];
     
-    // Thông tin nhận tiền của bạn (Cố định hoặc lấy từ biến hệ thống)
-    const MY_STK = "134150399";
-    const MY_BANK_ID = "acb"; // Mã ngân hàng nhận tiền của bạn theo chuẩn VietQR
+    // Thông tin nhận tiền của bạn (Cố định hoặc lấy từ biến hệ thống)    const MY_STK = "134150399";    const MY_BANK_ID = "acb"; // Mã ngân hàng nhận tiền của bạn theo chuẩn VietQR
 
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -409,7 +407,7 @@ btnBank.onclick = function () {
         // Tham số: app (id ngân hàng khách chọn), ba (stk@bank của bạn), am (số tiền), tn (nội dung)
         const deepLink = `https://dl.vietqr.io/pay` + 
                          `?app=${bank.id}` + 
-                         `&ba=${MY_STK}@${MY_BANK_ID}` + 
+                         `&ba=${SHOP_CONFIG.STK}}@${SHOP_CONFIG.BANK_ID}` + 
                          `&am=${total}` + 
                          `&tn=${encodeURIComponent(orderId)}` +  //+"https://keyonline.vercel.app";
                         "&url=https://payos.vn";
