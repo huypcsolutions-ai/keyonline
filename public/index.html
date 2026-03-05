@@ -362,7 +362,9 @@ if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     //emailInput.classList.add('ring-2', 'ring-red-500'); emailInput.focus(); return;}
             
 
-            const orderId = "ORD" + Math.floor(100000 + Math.random() * 899999);
+            //const orderId = "ORD" + Math.floor(100000 + Math.random() * 899999);
+            // Trong hàm confirmOrder()
+const orderId = "ORD" + Date.now().toString().slice(-6) + Math.floor(1000 + Math.random() * 9000);
             const btn = document.getElementById('btn-pay');
             btn.disabled = true;
             btn.innerHTML = `<div class="spinner !border-white !border-t-transparent mx-auto"></div>`;
