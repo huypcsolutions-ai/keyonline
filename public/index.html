@@ -169,6 +169,8 @@
     </div>
 
     <script>
+                            // Khai báo audio ở đầu script
+const successSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
 
 const BANK_CONFIG = {
     // NHÓM PHỔ BIẾN (Big 4 & Lớn)
@@ -455,8 +457,6 @@ btnBank.onclick = function () {
                 try {
                     const res = await fetch(`/api/check-status?orderId=${orderId}`);
                     const data = await res.json();
-                    // Khai báo audio ở đầu script
-const successSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
                     if (data.status === 'completed') {
                         clearInterval(timer);
                         // Phát âm thanh
