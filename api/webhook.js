@@ -1,466 +1,146 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastKey Store - Thanh Toán Tự Động</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; }
-        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .product-card:hover { transform: translateY(-8px); shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
-        .product-img { width: 80px; height: 80px; object-fit: contain; }
-        .hidden { display: none; }
-    </style>
-</head>
-<body class="p-4 md:p-10">
+ const { createClient } = require('@supabase/supabase-js');
+const nodemailer = require('nodemailer');
 
-    <div class="max-w-6xl mx-auto">
-        <div id="catalog-view">
-            <header class="text-center mb-12">
-                <h1 class="text-4xl font-extrabold text-slate-900 mb-2 italic">FAST<span class="text-blue-600">KEY</span></h1>
-                <p class="text-slate-500 font-medium">Hệ thống cung cấp Key bản quyền tự động 24/7</p>
-            </header>
-            <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="col-span-full text-center py-20">
-                    <div class="spinner mx-auto"></div>
-                    <p class="mt-4 text-slate-400">Đang tải kho hàng...</p>
-                </div>
-            </div>
-        </div>
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-        <div id="checkout-view" class="hidden max-w-xl mx-auto">
-            <button onclick="location.reload()" class="mb-6 text-slate-400 font-bold flex items-center hover:text-blue-600 transition">
-                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> QUAY LẠI
-            </button>
+// Cấu hình gửi mail bằng Gmail
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD, // Mật khẩu ứng dụng 16 số
+    },
+});
 
-            <div class="bg-white rounded-[2.5rem] shadow-2xl p-6 md:p-8 space-y-6 border border-slate-100">
-                <div class="flex items-center space-x-5 bg-slate-50 p-5 rounded-[2rem] border border-slate-100">
-                    <div id="check-img-container" class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white overflow-hidden">
-                        <i data-lucide="package" class="w-8 h-8"></i>
-                    </div>
-                    <div>
-                        <h3 id="check-name" class="font-bold text-xl text-slate-800 leading-tight">---</h3>
-                        <p class="text-xs text-slate-500 mt-1">Sản phẩm kỹ thuật số chính hãng</p>
-                    </div>
-                </div>
+async function logError(error, context, reqData = null) {
+    console.error(`[${context}]`, error.message);
+    try {
+        await supabase.from('errors_logs').insert([{
+            error_message: error.message,
+            context: context,
+            request_data: reqData
+        }]);
+    } catch (dbErr) { console.error("Ghi log lỗi thất bại"); }
+}
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Số lượng</label>
-                        <input type="number" id="qty" value="1" min="1" onchange="updateTotal()" 
-                            class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 font-bold outline-none">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Mã giảm giá</label>
-                        <div class="flex space-x-2">
-                            <input type="text" id="coupon" placeholder="MÃ" 
-                                class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 font-bold uppercase outline-none">
-                            <button onclick="alert('Tính năng đang cập nhật')" class="bg-slate-800 text-white px-4 rounded-2xl hover:bg-black transition">
-                                <i data-lucide="ticket" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+export default async function handler(req, res) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-                <div class="space-y-2">
-                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Email nhận mã Key</label>
-                    <input type="email" id="cust_email" placeholder="example@gmail.com" 
-                        class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
+    const body = req.body;
+    const authHeader = req.headers['authorization'] || '';
+    if (!process.env.SEPAY_API_KEY || !authHeader.includes(process.env.SEPAY_API_KEY)) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
 
-                <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl">
-                    <div class="flex justify-between items-center opacity-70 text-sm mb-1">
-                        <span>Đơn giá: <span id="unit-price">0đ</span></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-lg">Tổng thanh toán:</span>
-                        <span id="txt-total" class="text-3xl font-black text-blue-400">0đ</span>
-                    </div>
-                </div>
+    try {
+        const amount = body.transferAmount;
+        const description = body.description || body.content || "";
+        const orderMatch = description.match(/ORD\d+/);
+        const pureOrderId = orderMatch ? orderMatch[0] : null;
 
-                <button id="btn-pay" onclick="confirmOrder()" class="w-full py-5 bg-blue-600 text-white rounded-[1.5rem] font-extrabold shadow-xl hover:bg-blue-700 transition-all flex items-center justify-center space-x-2">
-                    <span>XÁC NHẬN THANH TOÁN</span>
-                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                </button>
-            </div>
-        </div>
+        if (!pureOrderId) return res.status(200).json({ message: "No ORD found" });
 
-        <div id="payment-view" class="hidden max-w-md mx-auto text-center space-y-8 py-4">
-            <div id="payment-loading">
-                <h3 class="text-2xl font-extrabold text-slate-800 italic">QUÉT MÃ CHUYỂN KHOẢN</h3>
-                <div class="bg-white p-4 border-2 border-slate-100 rounded-[3rem] inline-block shadow-2xl my-6">
-                    <img id="qr-img" src="" class="w-64 h-64 mx-auto object-contain">
-                </div>
-                <div class="px-6 space-y-4">
-                    <div class="bg-slate-900 p-4 rounded-2xl border border-slate-700 text-white">
-                        <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest">Nội dung chuyển khoản</p>
-                        <p id="p-content" class="text-2xl font-mono font-bold tracking-widest"></p>
-                    </div>
-                    
-<!--                    <div class="flex items-center justify-center space-x-3 text-blue-600 bg-blue-50 py-3 rounded-2xl">-->
-<div class="flex items-center justify-center space-x-3 text-blue-600 bg-blue-50 py-3 rounded-2xl">
-    <div class="spinner !w-4 !h-4"></div>
-    <span class="text-xs font-bold uppercase tracking-widest italic">Chờ thanh toán...</span>
-</div>
+        // 1. Tìm đơn hàng
+        const { data: order } = await supabase.from('orders').select('*').eq('order_id', pureOrderId).maybeSingle();
+        if (!order || order.status === 'completed') return res.status(200).json({ message: "Skip" });
 
-<!-- NÚT MỞ APP MOBILE -->
-<!-- CHỌN NGÂN HÀNG -->
-<div class="mt-4">
-<select id="bank-select" 
-    onchange="saveLastBank(this.value)"
-    class="w-full px-4 py-3 rounded-2xl bg-slate-100 font-bold text-slate-700 outline-none border-2 border-transparent focus:border-blue-500 transition">
-    <option value="acb">Ngân hàng ACB</option>
-    <option value="vcb">Ngân hàng Vietcombank</option>
-    <option value="icb">Ngân hàng VietinBank</option>
-    <option value="bidv">Ngân hàng BIDV</option>
-    <option value="mb">Ngân hàng MBBank</option>
-    <option value="tcb">Ngân hàng Techcombank</option>
-    <option value="vpb">Ngân hàng VPBank</option>
-    <option value="stb">Ngân hàng Sacombank</option>
-    <option value="tpb">Ngân hàng TPBank</option>
-    <option value="cake">Ngân hàng Số CAKE</option>
-    <option value="momo">Ví MoMo</option>
-</select>
-</div>
-<!-- NÚT MỞ APP -->
-<div id="mobile-pay-btn" class="mt-4">
-    <button id="btn-open-bank"
-        class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg hover:bg-emerald-700 transition">
-        MỞ APP NGÂN HÀNG
-    </button>
-</div>                  
+        // 2. Kiểm tra số tiền
+        if (Number(amount) >= Number(order.amount)) {
 
+            // 3. LẤY KEY TỪ KHO (Khớp ảnh: serial_key, is_sold)
+            const { data: keys, error: keyErr } = await supabase
+                .from('keys_stock')
+                .select('*')
+                .eq('product_code', order.code)
+                .eq('is_sold', false)
+                .limit(order.quantity || 1);
 
+            if (keyErr || !keys || keys.length < (order.quantity || 1)) {
+                await logError(new Error(`Hết kho sản phẩm: ${order.code}`), "OUT_OF_STOCK", body);
+                return res.status(200).json({ message: "Out of stock" });
+            }
 
-                </div>
-            </div>
+            const keyString = keys.map(k => k.serial_key).join('<br>');
 
-            <div id="payment-success" class="hidden space-y-6">
-                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-100">
-                    <i data-lucide="check" class="w-10 h-10"></i>
-                </div>
-                <h2 class="text-3xl font-black text-slate-800">Thành Công!</h2>
-                <p class="text-slate-500 px-10">Mã Key đã được gửi vào Email của bạn.</p>
-                <button onclick="location.reload()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold transition">TIẾP TỤC MUA SẮM</button>
-            </div>
-        </div>
-    </div>
+            // 4. CẬP NHẬT TRẠNG THÁI KEY (is_sold = TRUE)
+            const keyIds = keys.map(k => k.id);
+            await supabase.from('keys_stock').update({ is_sold: true, order_id: pureOrderId }).in('id', keyIds);
 
-    <script>
+            // 5. CẬP NHẬT ĐƠN HÀNG
+            await supabase.from('orders').update({ status: 'completed' }).eq('order_id', pureOrderId);
 
-const BANK_CONFIG = {
-    acb: { name: "ACB", id: "acb", web: "https://online.acb.com.vn" },
-    vcb: { name: "Vietcombank", id: "vcb", web: "https://vcbdigibank.vietcombank.com.vn" },
-    icb: { name: "VietinBank", id: "vietinbank", web: "https://ebanking.vietinbank.vn" },
-    bidv: { name: "BIDV", id: "bidv", web: "https://smartbanking.bidv.com.vn" },
-    mb: { name: "MBBank", id: "mb", web: "https://online.mbbank.com.vn" },
-    tcb: { name: "Techcombank", id: "tcb", web: "https://vcbdigibank.vietcombank.com.vn" }, // App mới thường tự redirect
-    vpb: { name: "VPBank", id: "vpbank", web: "https://online.vpbank.com.vn" },
-    stb: { name: "Sacombank", id: "sacombank", web: "https://www.isacombank.com.vn" },
-    tpb: { name: "TPBank", id: "tpbank", web: "https://ebanking.tpb.vn" },
-    cake: { name: "CAKE", id: "cake", web: "https://cake.vn" },
-    momo: { name: "MoMo", id: "momo", web: "https://momo.vn" }
+            // 6. GỬI MAIL QUA GMAIL
+
+// ... (các bước 1-5 giữ nguyên)
+
+// 6. TẠO DANH SÁCH KEY DẠNG BẢNG CHO EMAIL
+const keyRows = keys.map(k => `
+    <tr>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; color: #555;">${order.code}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; color: #2e7d32; font-weight: bold; font-family: monospace;">${k.serial_key}</td>
+    </tr>
+`).join('');
+
+const mailOptions = {
+    from: `"Huypcsolutions Support" <${process.env.GMAIL_USER}>`,
+    to: order.customer_email,
+    subject: `🎉 Thanh toán thành công đơn hàng #${pureOrderId}`,
+    html: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+            <div style="background-color: #4caf50; padding: 20px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 24px;">🎉 Thanh toán thành công!</h1>
+            </div>
+            
+            <div style="padding: 30px; background-color: white;">
+                <p style="margin-top: 0;">Chào bạn,</p>
+                <p>Cảm ơn bạn đã ủng hộ <strong>Huypcsolutions</strong>. Đơn hàng của bạn đã được thanh toán hoàn tất.</p>
+                
+                <div style="background-color: #f9f9f9; border: 1px dashed #4caf50; padding: 15px; border-radius: 4px; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 14px;"><strong>Mã đơn hàng:</strong> #${pureOrderId}</p>
+                    <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Sản phẩm:</strong> ${order.code}</p>
+                </div>
+
+                <h3 style="color: #4caf50; border-bottom: 2px solid #4caf50; padding-bottom: 5px;">🔑 Danh sách Key / Serial của bạn:</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2; text-align: left;">
+                            <th style="padding: 12px; font-size: 13px; text-transform: uppercase;">Sản phẩm</th>
+                            <th style="padding: 12px; font-size: 13px; text-transform: uppercase;">Key / Serial</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${keyRows}
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 30px;">
+                    <h3 style="color: #4caf50; display: flex; align-items: center;">🛠️ Hướng dẫn kích hoạt:</h3>
+                    <ol style="padding-left: 20px; color: #555; font-size: 14px; line-height: 1.8;">
+                        <li>Truy cập link: <a href="#" style="color: #4caf50; font-weight: bold; text-decoration: none;">Kích hoạt tại đây</a></li>
+                        <li>Đăng nhập tài khoản của bạn.</li>
+                        <li>Nhập <strong>"Mã key"</strong> để hoàn tất.</li>
+                    </ol>
+                </div>
+
+                <p style="font-size: 13px; color: #888; margin-top: 30px; border-top: 1px solid #eee; pt: 20px;">
+                    Nếu gặp khó khăn, vui lòng liên hệ Zalo hỗ trợ kỹ thuật.<br>
+                    Trân trọng,<br>
+                    <strong>Đội ngũ Huypcsolutions Support</strong>
+                </p>
+            </div>
+        </div>
+    `,
 };
 
-const SHOP_CONFIG = {
-    STK: "134150399",
-    BANK_ID: "acb", // Dùng cho VietQR link
-    QR_TEMPLATE: "compact2"
-};
-        
-        let allProducts = [], selectedProduct = null;
+await transporter.sendMail(mailOptions);
 
-window.onload = async () => {
-    // 1. Khởi tạo Icon
-    lucide.createIcons();
-    
-    // 2. Khôi phục ngân hàng đã chọn từ lần trước
-    loadLastBank();
-    
-    // 3. Tải sản phẩm từ Server
-    try {
-        const res = await fetch('/api/get-products');
-        allProducts = await res.json();
-        renderCatalog();
-    } catch (e) {
-        document.getElementById('product-list').innerHTML = 
-            `<p class="col-span-full text-center text-red-500">Lỗi kết nối máy chủ!</p>`;
-    }
-};
+            return res.status(200).json({ success: true, message: "Email sent with key" });
+        }
 
-function renderCatalog() {
-    const list = document.getElementById('product-list');
-    list.innerHTML = allProducts.map(p => {
-        const isOutOfStock = p.stock <= 0;
+        return res.status(200).json({ message: "Amount mismatch" });
 
-// Định dạng số lượng đã bán (Ví dụ: 1200 -> 1,2k)
-        const soldFormatted = p.sold >= 1000 
-            ? (p.sold / 1000).toFixed(1).replace('.0', '') + 'k' 
-            : p.sold;
-        
-        
-        // Nhãn trạng thái kho hàng
-        const stockBadge = isOutOfStock 
-            ? `<span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Hết hàng</span>`
-         //   : `<span class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Còn ${p.stock} sản phẩm</span>`;
-        : `<span class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Còn sẵn</span>`;
-
-        const mediaHtml = p.image_url 
-            ? `<img src="${p.image_url}" alt="${p.name}" class="product-img">`
-            : `<i data-lucide="zap" class="w-8 h-8 text-blue-600"></i>`;
-
-        // Style cho nút bấm dựa trên tồn kho
-        const btnClass = isOutOfStock
-            ? `bg-slate-200 text-slate-400 cursor-not-allowed`
-            : `bg-slate-900 text-white hover:bg-blue-600 shadow-lg`;
-        
-        const btnText = isOutOfStock ? "Hết hàng" : "Mua ngay";
-        const btnAction = isOutOfStock ? "" : `onclick="openCheckout('${p.code}')"`;
-
-        return `
-            <div class="product-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between relative overflow-hidden">
-                <div class="absolute top-6 right-6">
-                    ${stockBadge}
-                </div>
-
-                <div>
-                    <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6 overflow-hidden">
-                        ${mediaHtml}
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-800">${p.name}</h3>
-                    <p class="text-slate-400 text-sm mt-2 line-clamp-2 font-medium">${p.description || 'Giao hàng tự động 24/7'}</p>
-                </div>
-
-                <div class="flex items-center justify-between border-t border-slate-50 mt-6 pt-6">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Giá bán</span>
-                        <span class="text-2xl font-black text-blue-600">${Number(p.price).toLocaleString()}đ</span>
-                    </div>
-                    <button ${btnAction} class="${btnClass} px-6 py-3 rounded-2xl text-sm font-bold transition-all">
-                        ${btnText}
-                    </button>                    
-                </div>
-
-<div class="flex items-center space-x-2 mb-2">
-                        <div class="flex items-center text-amber-400">
-                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
-                            <span class="text-xs font-bold ml-1 text-slate-700">4.9</span>
-                        </div>
-                        <span class="text-slate-300">|</span>
-                        <span class="text-[11px] text-slate-500 font-medium">Đã bán ${soldFormatted}</span>
-                    </div>
-
-                    
-                
-            </div>
-        `;
-    }).join('');
-    lucide.createIcons();
+    } catch (err) {
+        await logError(err, "WEBHOOK_CRASH", body);
+        return res.status(500).json({ error: err.message });
+    }
 }
-
-        function openCheckout(code) {
-            selectedProduct = allProducts.find(p => p.code === code);
-            if (!selectedProduct) return;
-
-            document.getElementById('check-name').innerText = selectedProduct.name;
-            document.getElementById('unit-price').innerText = Number(selectedProduct.price).toLocaleString() + 'đ';
-            
-            // Cập nhật ảnh trong Checkout View
-            const imgContainer = document.getElementById('check-img-container');
-            if(selectedProduct.image_url) {
-                imgContainer.innerHTML = `<img src="${selectedProduct.image_url}" class="w-full h-full object-cover">`;
-                imgContainer.classList.remove('bg-blue-600');
-            } else {
-                imgContainer.innerHTML = `<i data-lucide="package" class="w-8 h-8 text-white"></i>`;
-                imgContainer.classList.add('bg-blue-600');
-            }
-
-            updateTotal();
-
-            document.getElementById('catalog-view').classList.add('hidden');
-            document.getElementById('checkout-view').classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function updateTotal() {
-            const qty = parseInt(document.getElementById('qty').value) || 1;
-            const subtotal = selectedProduct.price * qty;
-            document.getElementById('txt-total').innerText = subtotal.toLocaleString() + 'đ';
-        }
-
-        async function confirmOrder() {
-            const email = document.getElementById('cust_email').value.trim();
-            const qty = parseInt(document.getElementById('qty').value) || 1;
-            const total = parseInt(document.getElementById('txt-total').innerText.replace(/\D/g, ''));
-
-            if (qty > selectedProduct.stock) {
-        alert(`Rất tiếc! Số lượng tồn sẵn kho không đủ Vui lòng giảm số lượng.`);
-        //alert(`Rất tiếc! Hiện tại trong kho chỉ còn ${selectedProduct.stock} sản phẩm. Vui lòng giảm số lượng.`);
-        document.getElementById('qty').value = selectedProduct.stock; // Tự đưa về mức tối đa cho khách
-        updateTotal();
-        return; 
-    }
-
-
-            function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.innerText = message;
-    toast.classList.remove("hidden");
-
-    setTimeout(() => {
-        toast.classList.add("hidden");
-    }, 2500);
-}
-if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    const emailInput = document.getElementById('cust_email');
-    emailInput.classList.add('ring-2', 'ring-red-500');
-    emailInput.focus();
-
-    showToast("📧 Email không hợp lệ. Vui lòng kiểm tra lại.");
-
-    return;
-}
-            
-//if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {const emailInput = document.getElementById('cust_email');
-    //emailInput.classList.add('ring-2', 'ring-red-500'); emailInput.focus(); return;}
-            
-
-            const orderId = "ORD" + Math.floor(100000 + Math.random() * 899999);
-            const btn = document.getElementById('btn-pay');
-            btn.disabled = true;
-            btn.innerHTML = `<div class="spinner !border-white !border-t-transparent mx-auto"></div>`;
-
-            try {
-                const res = await fetch('/api/create-order', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ 
-                        orderId: orderId, 
-                        productCode: selectedProduct.code, 
-                        amount: total, 
-                        email: email, 
-                        quantity: qty 
-                    })
-                });
-
-                if (res.ok) {
-
-                    const qrUrl = `https://img.vietqr.io/image/${SHOP_CONFIG.BANK_ID}-${SHOP_CONFIG.STK}-${SHOP_CONFIG.QR_TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
-
-
-
-
-
-// Tạo payment link VietQR (link thay vì ảnh)
-//const paymentLink = `https://api.vietqr.io/v2/pay?bank=${BANK}&accountNumber=${STK}&amount=${total}&addInfo=${orderId}`;
-
-
-// MOBILE DEEPLINK // ===== MOBILE HANDLING =====
-
-                    const btnBank = document.getElementById('btn-open-bank');
-
-btnBank.onclick = function () {
-    const selectedBankKey = document.getElementById('bank-select').value;
-    const bank = BANK_CONFIG[selectedBankKey];
-    
-    // Thông tin nhận tiền của bạn (Cố định hoặc lấy từ biến hệ thống)
-    const MY_STK = "134150399";
-    const MY_BANK_ID = "acb"; // Mã ngân hàng nhận tiền của bạn theo chuẩn VietQR
-
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-        // TẠO DEEPLINK THEO CHUẨN TÀI LIỆU VIETQR.IO
-        // Tham số: app (id ngân hàng khách chọn), ba (stk@bank của bạn), am (số tiền), tn (nội dung)
-        const deepLink = `https://dl.vietqr.io/pay` + 
-                         `?app=${bank.id}` + 
-                         `&ba=${MY_STK}@${MY_BANK_ID}` + 
-                         `&am=${total}` + 
-                         `&tn=${encodeURIComponent(orderId)}` +  //+"https://keyonline.vercel.app";
-                        "&url=https://payos.vn";
-        
-        window.location.href = deepLink;
-
-        // Fallback: Nếu không mở được app sau 2.5 giây, cuộn xuống ảnh QR
-        setTimeout(() => {
-            if (!document.hidden) {
-                document.getElementById("qr-img").scrollIntoView({ behavior: "smooth" });
-            }
-        }, 2500);
-
-    } else {
-        // TRÊN DESKTOP: Mở link Internet Banking khách chọn
-        if (bank && bank.web) {
-            window.open(bank.web, "_blank");
-        } else {
-            alert("Vui lòng thanh toán bằng QRCODE hoặc internet banking của bạn...");
-        }
-    }
-};
-                    
-                    
-                    document.getElementById('qr-img').src = qrUrl;
-                    document.getElementById('p-content').innerText = orderId;
-                    document.getElementById('checkout-view').classList.add('hidden');
-                    document.getElementById('payment-view').classList.remove('hidden');
-                    startChecking(orderId);
-                } else {
-                    const errData = await res.json();
-                    alert("LỖI CƠ SỞ DỮ LIỆU: " + errData.error);
-                    btn.disabled = false;
-                    btn.innerText = "XÁC NHẬN THANH TOÁN";
-                }
-            } catch (e) {
-                alert("Lỗi kết nối Server! Vui lòng thử lại.");
-                btn.disabled = false;
-                btn.innerText = "XÁC NHẬN THANH TOÁN";
-            }
-        }
-
-        function startChecking(orderId) {
-            const timer = setInterval(async () => {
-                try {
-                    const res = await fetch(`/api/check-status?orderId=${orderId}`);
-                    const data = await res.json();
-                    if (data.status === 'completed') {
-                        clearInterval(timer);
-                        document.getElementById('payment-loading').classList.add('hidden');
-                        document.getElementById('payment-success').classList.remove('hidden');
-                        lucide.createIcons();
-                    }
-                } catch (e) {}
-            }, 3000);
-        }
-
-        // 1. Hàm lưu ngân hàng vào bộ nhớ trình duyệt
-function saveLastBank(bankKey) {
-    localStorage.setItem('fastkey_last_bank', bankKey);
-}
-
-// 2. Hàm khôi phục lại ngân hàng đã chọn (Chạy khi trang web vừa tải xong)
-function loadLastBank() {
-    const lastBank = localStorage.getItem('fastkey_last_bank');
-    if (lastBank) {
-        const select = document.getElementById('bank-select');
-        // Kiểm tra xem bank đã lưu có còn trong danh sách option không
-        if (select.querySelector(`option[value="${lastBank}"]`)) {
-            select.value = lastBank;
-        }
-    }
-}
-
-
-    </script>
-
-    <div id="toast"
-     class="hidden fixed top-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl text-sm font-bold z-50">
-</div>
-
-    
-</body>
-</html>
