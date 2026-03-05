@@ -407,7 +407,7 @@ btnBank.onclick = function () {
         // Tham số: app (id ngân hàng khách chọn), ba (stk@bank của bạn), am (số tiền), tn (nội dung)
         const deepLink = `https://dl.vietqr.io/pay` + 
                          `?app=${bank.id}` + 
-                         `&ba=${SHOP_CONFIG.STK}}@${SHOP_CONFIG.BANK_ID}` + 
+                         `&ba=${SHOP_CONFIG.STK}@${SHOP_CONFIG.BANK_ID}` + 
                          `&am=${total}` + 
                          `&tn=${encodeURIComponent(orderId)}` +  //+"https://keyonline.vercel.app";
                         "&url=https://payos.vn";
