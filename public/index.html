@@ -305,15 +305,29 @@ function renderCatalog() {
         updateTotal();
         return; 
     }
-            
 
-           // if (!email.includes('@')) return alert("Vui lòng nhập Email chính xác!");
+
+            function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.innerText = message;
+    toast.classList.remove("hidden");
+
+    setTimeout(() => {
+        toast.classList.add("hidden");
+    }, 2500);
+}
 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     const emailInput = document.getElementById('cust_email');
     emailInput.classList.add('ring-2', 'ring-red-500');
     emailInput.focus();
+
+    showToast("📧 Email không hợp lệ. Vui lòng kiểm tra lại.");
+
     return;
 }
+            
+//if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {const emailInput = document.getElementById('cust_email');
+    //emailInput.classList.add('ring-2', 'ring-red-500'); emailInput.focus(); return;}
             
 
             const orderId = "ORD" + Math.floor(100000 + Math.random() * 899999);
@@ -442,5 +456,11 @@ function loadLastBank() {
 
 
     </script>
+
+    <div id="toast"
+     class="hidden fixed top-6 right-6 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl text-sm font-bold z-50">
+</div>
+
+    
 </body>
 </html>
