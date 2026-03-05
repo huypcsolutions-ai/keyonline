@@ -308,14 +308,11 @@ function renderCatalog() {
             
 
            // if (!email.includes('@')) return alert("Vui lòng nhập Email chính xác!");
-            function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-if (!isValidEmail(email)) {
-  document.getElementById('cust_email').focus();
-  alert("Vui lòng nhập Email chính xác!");
-  return;
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const emailInput = document.getElementById('cust_email');
+    emailInput.classList.add('ring-2', 'ring-red-500');
+    emailInput.focus();
+    return;
 }
             
 
