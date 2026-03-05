@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
         if (error) return res.status(400).json({ error: error.message });
 
-        // Logic mẫu tại Backend xử lý /api/create-order
+        /*Logic mẫu tại Backend xử lý /api/create-order
 const sepayLink = `https://qr.sepay.vn/checkout?acc=${STK}&bank=${BANK}&amount=${total}&memo=${orderId}`;
 
 res.status(200).json({
@@ -25,8 +25,8 @@ res.status(200).json({
     orderId: orderId,
     sepay_checkout_url: sepayLink // Trả link này về để Frontend gán vào nút bấm
 });
-        
-       // return res.status(200).json({ success: true });
+        */
+        return res.status(200).json({ success: true });
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
