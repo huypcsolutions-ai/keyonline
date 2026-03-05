@@ -161,7 +161,7 @@
                 <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-100">
                     <i data-lucide="check" class="w-10 h-10"></i>
                 </div>
-                <h2 class="text-3xl font-black text-slate-800">${orderId}: Thành Công!</h2>
+               <h2 class="text-3xl font-black text-slate-800">    <span id="display-order-id"></span> Thành Công!</h2>
                 <p class="text-slate-500 px-10">Mã Key đã được gửi vào Email của bạn.</p>
                 <button onclick="location.reload()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold transition">TIẾP TỤC MUA SẮM</button>
             </div>
@@ -463,6 +463,8 @@ btnBank.onclick = function () {
                         clearInterval(timer);
                         // Phát âm thanh     
                         successSound.play().catch(e => console.log("Chờ tương tác để phát âm thanh"));
+                        // THÊM DÒNG NÀY ĐỂ HIỂN THỊ MÃ ĐƠN HÀNG
+    document.getElementById('display-order-id').innerText = orderId + ":";
                         document.getElementById('payment-loading').classList.add('hidden');
                         document.getElementById('payment-success').classList.remove('hidden');
                         //updateProgress(3); // Cập nhật progress lên 100%
