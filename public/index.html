@@ -455,10 +455,15 @@ btnBank.onclick = function () {
                 try {
                     const res = await fetch(`/api/check-status?orderId=${orderId}`);
                     const data = await res.json();
+                    // Khai báo audio ở đầu script
+const successSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
                     if (data.status === 'completed') {
                         clearInterval(timer);
+                        // Phát âm thanh
+    successSound.play().catch(e => console.log("Chờ tương tác để phát âm thanh"));
                         document.getElementById('payment-loading').classList.add('hidden');
                         document.getElementById('payment-success').classList.remove('hidden');
+                        //updateProgress(3); // Cập nhật progress lên 100%
                         lucide.createIcons();
                     }
                 } catch (e) {}
