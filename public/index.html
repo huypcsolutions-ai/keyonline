@@ -111,20 +111,37 @@
 <!-- NÚT MỞ APP MOBILE -->
 <!-- CHỌN NGÂN HÀNG -->
 <div class="mt-4">
-<select id="bank-select" 
-    onchange="saveLastBank(this.value)"
-    class="w-full px-4 py-3 rounded-2xl bg-slate-100 font-bold text-slate-700 outline-none border-2 border-transparent focus:border-blue-500 transition">
-    <option value="acb">Ngân hàng ACB</option>
-    <option value="vcb">Ngân hàng Vietcombank</option>
-    <option value="icb">Ngân hàng VietinBank</option>
-    <option value="bidv">Ngân hàng BIDV</option>
-    <option value="mb">Ngân hàng MBBank</option>
-    <option value="tcb">Ngân hàng Techcombank</option>
-    <option value="vpb">Ngân hàng VPBank</option>
-    <option value="stb">Ngân hàng Sacombank</option>
-    <option value="tpb">Ngân hàng TPBank</option>
-    <option value="cake">Ngân hàng Số CAKE</option>
-    <option value="momo">Ví MoMo</option>
+
+
+
+    <select id="bank-select" onchange="saveLastBank(this.value)" 
+    class="w-full px-4 py-3 rounded-2xl bg-slate-100 font-bold text-slate-700 outline-none border-2 border-transparent focus:border-blue-500 transition cursor-pointer">
+    
+    <optgroup label="Ngân hàng phổ biến">
+        <option value="vcb">Vietcombank</option>
+        <option value="mb">MBBank</option>
+        <option value="tcb">Techcombank</option>
+        <option value="icb">VietinBank</option>
+        <option value="acb">ACB</option>
+        <option value="bidv">BIDV</option>
+        <option value="vpb">VPBank</option>
+        <option value="momo">Ví MoMo</option>
+    </optgroup>
+
+    <optgroup label="Ngân hàng khác">
+        <option value="tpb">TPBank</option>
+        <option value="stb">Sacombank</option>
+        <option value="hdb">HDBank</option>
+        <option value="vib">VIB</option>
+        <option value="shb">SHB</option>
+        <option value="msb">MSB</option>
+        <option value="lpbank">LPBank</option>
+        <option value="cake">CAKE</option>
+        <option value="timo">Timo</option>
+        <option value="ocb">OCB</option>
+        <option value="nab">NamABank</option>
+        <option value="ncb">NCB</option>
+    </optgroup>
 </select>
 </div>
 <!-- NÚT MỞ APP -->
@@ -154,17 +171,30 @@
     <script>
 
 const BANK_CONFIG = {
-    acb: { name: "ACB", id: "acb", web: "https://online.acb.com.vn" },
-    vcb: { name: "Vietcombank", id: "vcb", web: "https://vcbdigibank.vietcombank.com.vn" },
+    // NHÓM PHỔ BIẾN (Big 4 & Lớn)
     icb: { name: "VietinBank", id: "vietinbank", web: "https://ebanking.vietinbank.vn" },
+    vcb: { name: "Vietcombank", id: "vietcombank", web: "https://vcbdigibank.vietcombank.com.vn" },
     bidv: { name: "BIDV", id: "bidv", web: "https://smartbanking.bidv.com.vn" },
+    vba: { name: "Agribank", id: "agribank", web: "https://ibank.agribank.com.vn" },
     mb: { name: "MBBank", id: "mb", web: "https://online.mbbank.com.vn" },
-    tcb: { name: "Techcombank", id: "tcb", web: "https://vcbdigibank.vietcombank.com.vn" }, // App mới thường tự redirect
+    tcb: { name: "Techcombank", id: "tcb", web: "https://tcb.techcombank.com.vn" },
+    acb: { name: "ACB", id: "acb", web: "https://online.acb.com.vn" },
     vpb: { name: "VPBank", id: "vpbank", web: "https://online.vpbank.com.vn" },
-    stb: { name: "Sacombank", id: "sacombank", web: "https://www.isacombank.com.vn" },
     tpb: { name: "TPBank", id: "tpbank", web: "https://ebanking.tpb.vn" },
+    stb: { name: "Sacombank", id: "sacombank", web: "https://www.isacombank.com.vn" },
+    hdb: { name: "HDBank", id: "hdbank", web: "https://hdbank.com.vn" },
+    vib: { name: "VIB", id: "vib", web: "https://ib.vib.com.vn" },
+    shb: { name: "SHB", id: "shb", web: "https://ibanking.shb.com.vn" },
+    msb: { name: "MSB", id: "msb", web: "https://ebank.msb.com.vn" },
+    lpbank: { name: "LPBank", id: "lpbank", web: "https://lpbank.com.vn" },
+    
+    // NHÓM NGÂN HÀNG SỐ & KHÁC
     cake: { name: "CAKE", id: "cake", web: "https://cake.vn" },
-    momo: { name: "MoMo", id: "momo", web: "https://momo.vn" }
+    timo: { name: "Timo", id: "timo", web: "https://timo.vn" },
+    momo: { name: "Ví MoMo", id: "momo", web: "https://momo.vn" },
+    ocb: { name: "OCB", id: "ocb", web: "https://omni.ocb.com.vn" },
+    nab: { name: "NamABank", id: "namabank", web: "https://ebanking.namabank.com.vn" },
+    ncb: { name: "NCB", id: "ncb", web: "https://ncb-bank.com.vn" }
 };
 
 const SHOP_CONFIG = {
