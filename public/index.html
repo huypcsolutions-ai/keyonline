@@ -376,21 +376,30 @@ btnBank.onclick = function () {
                     document.getElementById('payment-view').classList.remove('hidden');
                     startChecking(orderId);
 */
-if (res.ok) {    // 1. Hiển thị ảnh QR TỨC THÌ (Dùng link VietQR.io như cũ nhưng chuẩn hóa theo SePay)
-    const qrUrl = `https://img.vietqr.io/image/${SHOP_CONFIG.BANK_ID}-${SHOP_CONFIG.STK}-${SHOP_CONFIG.QR_TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
-    document.getElementById('qr-img').src = qrUrl;
-    document.getElementById('p-content').innerText = orderId;
+const resData = await res.json(); // CHỈ GỌI 1 LẦN DUY NHẤT Ở ĐÂY
 
-    // 2. Cấu hình nút mở App bằng SEPAY CHECKOUT (Tự động & Đẹp hơn)    // Bạn cần sửa API Backend để trả về link này (xem Bước 2 bên dưới)
-    const btnBank = document.getElementById('btn-open-bank');
-    btnBank.innerText = "MỞ APP NGÂN HÀNG THANH TOÁN";
-    btnBank.classList.replace('bg-emerald-600', 'bg-blue-600'); // Đổi màu cho chuyên nghiệp
+                if (res.ok) {
+                    // 1. Hiển thị ảnh QR TỨC THÌ
+                    const qrUrl = `https://img.vietqr.io/image/${SHOP_CONFIG.BANK_ID}-${SHOP_CONFIG.STK}-${SHOP_CONFIG.QR_TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
+                    document.getElementById('qr-img').src = qrUrl;
+                    document.getElementById('p-content').innerText = orderId;
 
-    // Lấy link checkout từ Backend trả về
-    const resData = await res.json(); 
-    btnBank.onclick = function () {
-        if (resData.sepay_checkout_url) {
-            window.location.href = resData.sepay_checkout_url;
+                    // 2. Cấu hình nút mở App
+                    const btnBank = document.getElementById('btn-open-bank');
+                    btnBank.innerText = "MỞ APP NGÂN HÀNG THANH TOÁN";
+                    btnBank.classList.replace('bg-emerald-600', 'bg-blue-600');
+
+                    btnBank.onclick = function () {
+                        // SePay tự tạo link checkout rất nhanh theo format này:
+                        const sepayLink = `https://qr.sepay.vn/checkout?acc=${SHOP_CONFIG.STK}&bank=${SHOP_CONFIG.BANK_ID}&amount=${total}&memo=${orderId}`;
+                        window.location.href = sepayLink;
+                    };
+
+                    // Chuyển View
+                    document.getElementById('checkout-view').classList.add('hidden');
+                    document.getElementById('payment-view').classList.remove('hidden');
+                    startChecking(orderId)
+                
         } else {
             // Fallback nếu không lấy được link
             alert("Vui lòng quét mã QR trên màn hình.");
