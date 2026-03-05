@@ -307,7 +307,17 @@ function renderCatalog() {
     }
             
 
-            if (!email.includes('@')) return alert("Vui lòng nhập Email chính xác!");
+           // if (!email.includes('@')) return alert("Vui lòng nhập Email chính xác!");
+            function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+if (!isValidEmail(email)) {
+  document.getElementById('cust_email').focus();
+  alert("Vui lòng nhập Email chính xác!");
+  return;
+}
+            
 
             const orderId = "ORD" + Math.floor(100000 + Math.random() * 899999);
             const btn = document.getElementById('btn-pay');
