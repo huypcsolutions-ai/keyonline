@@ -12,7 +12,7 @@
         .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .product-card:hover { transform: translateY(-8px); shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
         .product-img { width: 80px; height: 80px; object-fit: contain; }
         .hidden { display: none; }
     </style>
@@ -57,20 +57,13 @@
                     </div>
                     <div class="space-y-2">
                         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Mã giảm giá</label>
-                        <div class="flex space-x-2">
-                            <input type="text" id="coupon" placeholder="MÃ" 
-                                class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 font-bold uppercase outline-none">
-                            <button onclick="alert('Tính năng đang cập nhật')" class="bg-slate-800 text-white px-4 rounded-2xl hover:bg-black transition">
-                                <i data-lucide="ticket" class="w-4 h-4"></i>
-                            </button>
-                        </div>
+                        <input type="text" id="coupon" placeholder="MÃ" class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 font-bold uppercase outline-none">
                     </div>
                 </div>
 
                 <div class="space-y-2">
                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Email nhận mã Key</label>
-                    <input type="email" id="cust_email" placeholder="example@gmail.com" 
-                        class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="email" id="cust_email" placeholder="example@gmail.com" class="w-full px-4 py-3 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
 
                 <div class="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl">
@@ -92,7 +85,7 @@
 
         <div id="payment-view" class="hidden max-w-md mx-auto text-center space-y-8 py-4">
             <div id="payment-loading">
-                <h3 class="text-2xl font-extrabold text-slate-800 italic">QUÉT MÃ CHUYỂN KHOẢN</h3>
+                <h3 class="text-2xl font-extrabold text-slate-800 italic uppercase">Quét mã chuyển khoản</h3>
                 <div class="bg-white p-4 border-2 border-slate-100 rounded-[3rem] inline-block shadow-2xl my-6">
                     <img id="qr-img" src="" class="w-64 h-64 mx-auto object-contain">
                 </div>
@@ -101,28 +94,23 @@
                         <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest">Nội dung chuyển khoản</p>
                         <p id="p-content" class="text-2xl font-mono font-bold tracking-widest"></p>
                     </div>
-                    
                     <div class="flex items-center justify-center space-x-3 text-blue-600 bg-blue-50 py-3 rounded-2xl">
                         <div class="spinner !w-4 !h-4"></div>
                         <span class="text-xs font-bold uppercase tracking-widest italic">Chờ thanh toán...</span>
                     </div>
-
-                    <div id="mobile-pay-btn" class="mt-4">
-                        <button id="btn-open-bank"
-                            class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition">
-                            MỞ APP NGÂN HÀNG THANH TOÁN
-                        </button>
-                    </div>
+                    <button id="btn-open-bank" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition">
+                        MỞ APP NGÂN HÀNG THANH TOÁN
+                    </button>
                 </div>
             </div>
 
             <div id="payment-success" class="hidden space-y-6">
-                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-100">
+                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
                     <i data-lucide="check" class="w-10 h-10"></i>
                 </div>
                 <h2 class="text-3xl font-black text-slate-800">Thành Công!</h2>
                 <p class="text-slate-500 px-10">Mã Key đã được gửi vào Email của bạn.</p>
-                <button onclick="location.reload()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold transition">TIẾP TỤC MUA SẮM</button>
+                <button onclick="location.reload()" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold">TIẾP TỤC MUA SẮM</button>
             </div>
         </div>
     </div>
@@ -132,10 +120,10 @@
     <script>
         const SHOP_CONFIG = {
             STK: "134150399",
-            BANK_ID: "acb", 
+            BANK_ID: "acb",
             QR_TEMPLATE: "compact2"
         };
-        
+
         let allProducts = [], selectedProduct = null;
 
         window.onload = async () => {
@@ -145,7 +133,7 @@
                 allProducts = await res.json();
                 renderCatalog();
             } catch (e) {
-                document.getElementById('product-list').innerHTML = `<p class="col-span-full text-center text-red-500">Lỗi kết nối máy chủ!</p>`;
+                document.getElementById('product-list').innerHTML = `<p class="text-red-500">Lỗi tải dữ liệu!</p>`;
             }
         };
 
@@ -153,37 +141,26 @@
             const list = document.getElementById('product-list');
             list.innerHTML = allProducts.map(p => {
                 const isOutOfStock = p.stock <= 0;
-                const soldFormatted = p.sold >= 1000 ? (p.sold / 1000).toFixed(1) + 'k' : p.sold;
-                const stockBadge = isOutOfStock 
-                    ? `<span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Hết hàng</span>`
-                    : `<span class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Còn sẵn</span>`;
-
                 return `
-                    <div class="product-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between relative overflow-hidden">
-                        <div class="absolute top-6 right-6">${stockBadge}</div>
+                <div class="product-card bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6">
+                            ${p.image_url ? `<img src="${p.image_url}" class="product-img">` : `<i data-lucide="zap" class="text-blue-600"></i>`}
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800">${p.name}</h3>
+                        <p class="text-slate-400 text-sm mt-2 line-clamp-2">${p.description || 'Giao hàng tự động'}</p>
+                    </div>
+                    <div class="flex items-center justify-between mt-6 pt-6 border-t">
                         <div>
-                            <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6 overflow-hidden">
-                                ${p.image_url ? `<img src="${p.image_url}" class="product-img">` : `<i data-lucide="zap" class="w-8 h-8 text-blue-600"></i>`}
-                            </div>
-                            <h3 class="text-xl font-bold text-slate-800">${p.name}</h3>
-                            <p class="text-slate-400 text-sm mt-2 line-clamp-2">${p.description || 'Giao hàng tự động 24/7'}</p>
-                            <div class="flex items-center space-x-2 mt-2">
-                                <div class="flex items-center text-amber-400"><i data-lucide="star" class="w-3 h-3 fill-current"></i><span class="text-xs font-bold ml-1 text-slate-700">4.9</span></div>
-                                <span class="text-slate-300">|</span>
-                                <span class="text-[11px] text-slate-500 font-medium">Đã bán ${soldFormatted}</span>
-                            </div>
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Giá bán</span>
+                            <span class="text-2xl font-black text-blue-600">${Number(p.price).toLocaleString()}đ</span>
                         </div>
-                        <div class="flex items-center justify-between border-t border-slate-50 mt-6 pt-6">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">Giá bán</span>
-                                <span class="text-2xl font-black text-blue-600">${Number(p.price).toLocaleString()}đ</span>
-                            </div>
-                            <button onclick="${isOutOfStock ? '' : `openCheckout('${p.code}')`}" 
-                                class="${isOutOfStock ? 'bg-slate-200 text-slate-400' : 'bg-slate-900 text-white hover:bg-blue-600'} px-6 py-3 rounded-2xl text-sm font-bold transition-all">
-                                ${isOutOfStock ? 'Hết hàng' : 'Mua ngay'}
-                            </button>
-                        </div>
-                    </div>`;
+                        <button onclick="${isOutOfStock ? '' : `openCheckout('${p.code}')`}" 
+                            class="${isOutOfStock ? 'bg-slate-200 text-slate-400' : 'bg-slate-900 text-white hover:bg-blue-600'} px-6 py-3 rounded-2xl text-sm font-bold">
+                            ${isOutOfStock ? 'Hết' : 'Mua ngay'}
+                        </button>
+                    </div>
+                </div>`;
             }).join('');
             lucide.createIcons();
         }
@@ -207,20 +184,15 @@
             const qty = parseInt(document.getElementById('qty').value) || 1;
             const total = selectedProduct.price * qty;
 
-            if (qty > selectedProduct.stock) {
-                alert("Số lượng tồn kho không đủ!");
-                return;
-            }
-
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showToast("📧 Email không hợp lệ!");
+                showToast("Email không hợp lệ!");
                 return;
             }
 
             const orderId = "ORD" + Math.floor(100000 + Math.random() * 899999);
             const btn = document.getElementById('btn-pay');
             btn.disabled = true;
-            btn.innerHTML = `<div class="spinner !border-white !border-t-transparent mx-auto"></div>`;
+            btn.innerHTML = `<div class="spinner !border-white !border-t-transparent"></div>`;
 
             try {
                 const res = await fetch('/api/create-order', {
@@ -230,12 +202,10 @@
                 });
 
                 if (res.ok) {
-                    // Hiển thị QR VietQR (Tốc độ nhanh)
                     const qrUrl = `https://img.vietqr.io/image/${SHOP_CONFIG.BANK_ID}-${SHOP_CONFIG.STK}-${SHOP_CONFIG.QR_TEMPLATE}.png?amount=${total}&addInfo=${orderId}`;
                     document.getElementById('qr-img').src = qrUrl;
                     document.getElementById('p-content').innerText = orderId;
-
-                    // Cấu hình nút mở App SePay (Tự động chọn bank)
+                    
                     document.getElementById('btn-open-bank').onclick = () => {
                         window.location.href = `https://qr.sepay.vn/checkout?acc=${SHOP_CONFIG.STK}&bank=${SHOP_CONFIG.BANK_ID}&amount=${total}&memo=${orderId}`;
                     };
@@ -245,7 +215,7 @@
                     startChecking(orderId);
                 } else {
                     const err = await res.json();
-                    alert("Lỗi: " + err.error);
+                    alert(err.error);
                     btn.disabled = false;
                     btn.innerText = "XÁC NHẬN THANH TOÁN";
                 }
@@ -265,16 +235,15 @@
                         clearInterval(timer);
                         document.getElementById('payment-loading').classList.add('hidden');
                         document.getElementById('payment-success').classList.remove('hidden');
-                        lucide.createIcons();
                     }
                 } catch (e) {}
             }, 3000);
         }
 
-        function showToast(msg) {
-            const t = document.getElementById("toast");
-            t.innerText = msg; t.classList.remove("hidden");
-            setTimeout(() => t.classList.add("hidden"), 2500);
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.innerText = m; t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 2500);
         }
     </script>
 </body>
